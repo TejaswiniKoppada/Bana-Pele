@@ -14,7 +14,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   padding: var(--space-sm) var(--space-md);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  transition:
+    /* border-color var(--transition-base), */ box-shadow
+    var(--transition-base);
 }
 
 .search-bar__field:focus-within {

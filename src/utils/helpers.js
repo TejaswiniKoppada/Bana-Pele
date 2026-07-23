@@ -24,6 +24,22 @@ export function initialsForName(name) {
   return initials.toUpperCase();
 }
 
+const YOUTUBE_ID_PATTERN =
+  /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/))([a-zA-Z0-9_-]{11})/;
+
+/** Extracts the 11-char video id from any common YouTube URL shape (watch, youtu.be, embed, shorts) — including extra query params like `?si=...`. Returns null for non-YouTube URLs. */
+export function getYouTubeVideoId(url) {
+  if (!url) return null;
+  const match = url.match(YOUTUBE_ID_PATTERN);
+  return match ? match[1] : null;
+}
+
+/** Public, no-API-key thumbnail CDN — https://img.youtube.com/vi/<id>/hqdefault.jpg always exists for a valid video id. Returns null for non-YouTube URLs. */
+export function getYouTubeThumbnailUrl(url) {
+  const id = getYouTubeVideoId(url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
+
 export function formatDate(isoDate) {
   return new Date(isoDate).toLocaleDateString('en-GB', {
     day: '2-digit',
