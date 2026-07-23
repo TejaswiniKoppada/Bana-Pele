@@ -1,0 +1,59 @@
+.community-voices-page {
+  padding-bottom: var(--space-lg);
+}
+
+.my-stories__cta {
+  margin: 0 var(--space-md) var(--space-md);
+  width: calc(100% - 2 * var(--space-md));
+}
+
+.my-stories__form-wrapper {
+  margin: 0 var(--space-md) var(--space-md);
+  animation: filter-row-in var(--transition-base);
+}
+
+.my-stories__mode-toggle {
+  margin: 0 0 var(--space-sm);
+}
+
+.my-stories__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-md);
+}
+
+.my-stories__file-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: calc(-1 * var(--space-xs));
+}
+
+.my-stories__field-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-badge);
+}
+
+.my-stories__form input {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.my-stories__form input:hover {
+  border-color: var(--color-border-strong);
+}
+
+.my-stories__form input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.my-stories__form .btn-secondary {
+  align-self: flex-end;
+}

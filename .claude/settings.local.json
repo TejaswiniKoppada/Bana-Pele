@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/LENOVO/bana-pele-poc/frontend/src/pages/peer-connect/my-connections/**)",
+      "Read(//c/Users/LENOVO/bana-pele-poc/frontend/**)",
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(cp \"C:/Users/LENOVO/AppData/Local/Temp/claude/c--Users-LENOVO-elevate-frontend/f5e69914-10a5-4828-85e8-dd52d7bdbad1/scratchpad/verify-chat.cjs\" /c/Users/LENOVO/bana-pele-poc/frontend/verify-chat-tmp.cjs)",
+      "Bash(node verify-chat-tmp.cjs)",
+      "Bash(cp \"C:/Users/LENOVO/AppData/Local/Temp/claude/c--Users-LENOVO-elevate-frontend/f5e69914-10a5-4828-85e8-dd52d7bdbad1/scratchpad/verify-chat-poll.cjs\" /c/Users/LENOVO/bana-pele-poc/frontend/verify-chat-poll-tmp.cjs)",
+      "Bash(node verify-chat-poll-tmp.cjs)",
+      "Bash(rm -f /c/Users/LENOVO/bana-pele-poc/frontend/verify-chat-poll-tmp.cjs)",
+      "Bash(npm uninstall *)",
+      "Bash(MSYS_NO_PATHCONV=1 robocopy \"C:/Users/LENOVO/bana-pele-poc/frontend\" \"C:/Users/LENOVO/elevate_frontend\" /E /XD node_modules dist /XJ /NFL /NDL /NP)",
+      "Bash(echo \"robocopy exit code: $?\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\LENOVO\\bana-pele-poc\\frontend\\src\\router",
+      "c:\\Users\\LENOVO\\bana-pele-poc\\frontend\\src\\pages\\peer-connect\\my-connections",
+      "C:\\Users\\LENOVO\\bana-pele-poc\\frontend"
+    ]
+  }
+}

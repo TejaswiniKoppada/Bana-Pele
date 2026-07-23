@@ -1,0 +1,98 @@
+.notification-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 15, 33, 0.45);
+  z-index: 30;
+  animation: side-nav-fade-in var(--transition-base);
+}
+
+@keyframes notification-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-panel {
+  position: absolute;
+  top: calc(var(--header-height) + var(--space-sm));
+  left: var(--space-md);
+  right: var(--space-md);
+  max-height: calc(100vh - var(--header-height) - var(--space-xl));
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: notification-panel-in var(--transition-slide);
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-item {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item__icon {
+  color: var(--color-info);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notification-item__content {
+  min-width: 0;
+}
+
+.notification-item__title {
+  color: var(--color-info);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--space-sm);
+}
+
+.notification-item__body {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+.notification-item__body strong {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.notification-item__extra {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin-top: var(--space-sm);
+}
+
+.notification-item__footer {
+  color: var(--color-accent-dark);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-md);
+}
+
+/* On wider screens, anchor the panel near the bell like a conventional
+   desktop dropdown instead of spanning the full toolbar width. */
+@media (min-width: 768px) {
+  .notification-panel {
+    left: auto;
+    right: var(--space-lg);
+    width: min(420px, calc(100vw - 2 * var(--space-lg)));
+  }
+}

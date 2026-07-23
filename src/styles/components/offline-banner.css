@@ -1,0 +1,24 @@
+.offline-banner {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 15;
+  background: var(--color-badge);
+  color: var(--color-text-on-primary);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-sm);
+  box-shadow: var(--shadow-sm);
+  animation: offline-banner-in var(--transition-base);
+}
+
+@keyframes offline-banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

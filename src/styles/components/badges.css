@@ -1,0 +1,41 @@
+.progress-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin: 0 var(--space-md) var(--space-md);
+}
+
+.progress-badge__icon {
+  color: var(--color-accent-dark);
+  flex-shrink: 0;
+}
+
+.progress-badge__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-badge__name {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+}
+
+.progress-badge__location {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.progress-badge__tier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}

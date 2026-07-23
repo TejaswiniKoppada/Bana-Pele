@@ -1,0 +1,22 @@
+name: Fetch YouTube Content
+
+# Section 8, step 4: scheduled trigger for the ingestion Edge Function.
+# Runs once daily (see Section 5's quota reasoning — no need for more
+# frequent runs). Also runnable on demand from the Actions tab, which is
+# useful for the manual run required by Section 8, step 7 before this
+# schedule is relied on.
+on:
+  schedule:
+    - cron: '0 6 * * *' # 6am UTC daily — adjust to your timezone as needed
+  workflow_dispatch: {}
+
+jobs:
+  trigger-ingestion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call fetch-youtube-content Edge Function
+        run: |
+          curl --fail --show-error -X POST \
+            "${{ secrets.SUPABASE_FETCH_FUNCTION_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"

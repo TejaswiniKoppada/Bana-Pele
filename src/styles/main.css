@@ -1,0 +1,58 @@
+@import './base/reset.css';
+@import './base/variables.css';
+@import './base/typography.css';
+
+@import './components/header.css';
+@import './components/side-nav.css';
+@import './components/tabs.css';
+@import './components/cards.css';
+@import './components/buttons.css';
+@import './components/badges.css';
+@import './components/search-bar.css';
+@import './components/filter-bar.css';
+@import './components/search-radar.css';
+@import './components/install-prompt.css';
+@import './components/offline-banner.css';
+@import './components/notification-panel.css';
+@import './components/login.css';
+@import './components/search-map.css';
+
+@import './pages/home.css';
+@import './pages/peer-connect.css';
+@import './pages/community-voices.css';
+@import './pages/profile.css';
+@import './pages/chat.css';
+@import './pages/admin-content-review.css';
+
+.app-shell {
+  min-height: 100%;
+  background: var(--color-background);
+}
+
+.app-shell__content {
+  padding-bottom: var(--space-xl);
+}
+
+/*
+ * Desktop/tablet layout.
+ * The header and side-nav overlay always span the full viewport width
+ * (they sit outside .app-shell__content in App.jsx), so widening the
+ * viewport already gives a proper full-width toolbar. Only the routed
+ * page content is width-constrained and centered here, the same way a
+ * desktop web app centers its content under a full-bleed top bar.
+ */
+@media (min-width: 768px) {
+  .app-shell__content {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-shell__content {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+}
