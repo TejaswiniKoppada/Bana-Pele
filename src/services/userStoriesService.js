@@ -38,6 +38,7 @@ function mapUserStory(row) {
     title: row.title,
     sourceUrl: row.video_url || '',
     storyType: row.story_type,
+    thumbnailUrl: row.thumbnail_url || '',
     sharedToSocial: row.shared_to_social,
   };
 }
@@ -68,7 +69,31 @@ function sanitizeFileName(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
-export async function createUploadStory(userId, { title, file }) {
+/**
+ * Best-effort: the thumbnail is a nice-to-have preview, not the story
+ * itself, so any failure here (bad data URL, upload rejected) just means no
+ * thumbnail gets saved — it never blocks or fails the story post.
+ */
+async function uploadThumbnail(userId, dataUrl) {
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const path = `${userId}/thumbnails/${Date.now()}.jpg`;
+    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, blob, {
+      contentType: 'image/jpeg',
+      upsert: false,
+    });
+    if (uploadError) throw uploadError;
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(BUCKET).getPublicUrl(path);
+    return publicUrl;
+  } catch (err) {
+    console.warn('Could not save story thumbnail:', err.message);
+    return null;
+  }
+}
+
+export async function createUploadStory(userId, { title, file, thumbnail }) {
   const validationError = validateStoryFile(file);
   if (validationError) throw new Error(validationError);
 
@@ -84,17 +109,30 @@ export async function createUploadStory(userId, { title, file }) {
     data: { publicUrl },
   } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
-  const { data, error } = await supabase
+  const thumbnailUrl = thumbnail ? await uploadThumbnail(userId, thumbnail) : null;
+
+  const baseRow = {
+    user_id: String(userId),
+    title,
+    story_type: 'upload',
+    storage_path: path,
+    video_url: publicUrl,
+  };
+
+  let { data, error } = await supabase
     .from('user_stories')
-    .insert({
-      user_id: String(userId),
-      title,
-      story_type: 'upload',
-      storage_path: path,
-      video_url: publicUrl,
-    })
+    .insert({ ...baseRow, thumbnail_url: thumbnailUrl })
     .select()
     .single();
+
+  // PGRST204 = "column not found in schema cache" — the thumbnail_url
+  // migration (supabase/migrations/0005_story_thumbnails.sql) hasn't been
+  // run against this project yet. Don't let a missing nice-to-have column
+  // block the story post itself; retry without it.
+  if (error?.code === 'PGRST204') {
+    console.warn('thumbnail_url column missing — run 0005_story_thumbnails.sql. Posting without a thumbnail.');
+    ({ data, error } = await supabase.from('user_stories').insert(baseRow).select().single());
+  }
 
   if (error) throw error;
   return mapUserStory(data);
@@ -138,12 +176,20 @@ export async function deleteStory(userId, storyId) {
 
   if (error) throw error;
 
-  if (data?.storage_path) {
-    const { error: removeError } = await supabase.storage.from(BUCKET).remove([data.storage_path]);
+  const paths = [data?.storage_path, thumbnailPathFromUrl(data?.thumbnail_url)].filter(Boolean);
+  if (paths.length) {
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove(paths);
     if (removeError) {
-      console.warn('Story deleted, but its uploaded file could not be removed from storage:', removeError.message);
+      console.warn('Story deleted, but its uploaded file(s) could not be removed from storage:', removeError.message);
     }
   }
 
   return data.id;
+}
+
+function thumbnailPathFromUrl(thumbnailUrl) {
+  if (!thumbnailUrl) return null;
+  const marker = `/${BUCKET}/`;
+  const index = thumbnailUrl.indexOf(marker);
+  return index === -1 ? null : thumbnailUrl.slice(index + marker.length);
 }

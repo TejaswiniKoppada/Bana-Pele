@@ -83,3 +83,17 @@ select:focus-visible {
   background: var(--color-accent);
   color: var(--color-text-on-primary);
 }
+
+/* Visually hidden but still focusable/clickable — for inputs whose UI is a
+   styled button/label instead of the native control (e.g. file pickers). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

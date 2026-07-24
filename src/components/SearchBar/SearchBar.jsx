@@ -1,7 +1,12 @@
-import { SearchIcon, MicIcon, FilterIcon } from '../../assets/icons';
-import '../../styles/components/search-bar.css';
+import { SearchIcon, MicIcon, FilterIcon } from "../../assets/icons";
+import "../../styles/components/search-bar.css";
 
-export default function SearchBar({ value, onChange, placeholder = 'Search', onFilterClick }) {
+export default function SearchBar({
+  value,
+  onChange,
+  placeholder = "Search",
+  onFilterClick,
+}) {
   return (
     <div className="search-bar">
       <div className="search-bar__field">
@@ -16,7 +21,11 @@ export default function SearchBar({ value, onChange, placeholder = 'Search', onF
         <MicIcon className="search-bar__icon" />
       </div>
       {onFilterClick && (
-        <button className="search-bar__filter-btn" onClick={onFilterClick} aria-label="Filters">
+        <button
+          className="search-bar__filter-btn"
+          onClick={onFilterClick}
+          aria-label="Filters"
+        >
           <FilterIcon />
         </button>
       )}

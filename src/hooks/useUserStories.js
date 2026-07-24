@@ -48,8 +48,8 @@ export function useUserStories(userId) {
   );
 
   const addUploadStory = useCallback(
-    async ({ title, file }) => {
-      const saved = await createUploadStory(userId, { title, file });
+    async ({ title, file, thumbnail }) => {
+      const saved = await createUploadStory(userId, { title, file, thumbnail });
       setStories((prev) => [saved, ...prev]);
       return saved;
     },
