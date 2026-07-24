@@ -9,10 +9,12 @@ import Login from './components/Login/Login';
 import AppRouter from './router/AppRouter';
 import ContentReview from './pages/admin/ContentReview';
 import { useAppState } from './context/AppStateContext';
+import { roleFromEmail } from './utils/helpers';
 
 function pageTitleForPath(pathname) {
-  if (pathname.startsWith('/peer-connect')) return 'Peer Connect';
+  if (pathname.startsWith('/peer-connect')) return 'Community Connect';
   if (pathname.startsWith('/community-voices')) return 'Community Voices';
+  if (pathname.startsWith('/my-learning')) return 'My Learning';
   return 'Home';
 }
 
@@ -37,7 +39,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-role={roleFromEmail(state.currentUser.email)}>
       <Header
         title={pageTitleForPath(location.pathname)}
         notificationCount={state.notificationCount}

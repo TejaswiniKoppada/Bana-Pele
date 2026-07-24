@@ -30,9 +30,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon-192.svg', 'icons/icon-512.svg'],
       manifest: {
-        name: 'Elevate - Peer Connect & Community Voices',
+        name: 'Elevate - Community Connect & Community Voices',
         short_name: 'Elevate',
-        description: 'Peer Connect and Community Voices for Bana Pele ELP practitioners',
+        description: 'Community Connect and Community Voices for Bana Pele ELP practitioners',
         start_url: '/',
         display: 'standalone',
         background_color: '#F3F1F8',

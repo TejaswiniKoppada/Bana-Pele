@@ -1,0 +1,41 @@
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: var(--space-xs);
+}
+
+.info-tooltip__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+}
+
+.info-tooltip__trigger:hover,
+.info-tooltip__trigger[aria-expanded='true'] {
+  color: var(--color-primary);
+  background: var(--color-accent-light);
+}
+
+.info-tooltip__bubble {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-xs));
+  left: 0;
+  width: 240px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-darker);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-transform: none;
+  letter-spacing: normal;
+  box-shadow: var(--shadow-md);
+  white-space: pre-line;
+}

@@ -16,10 +16,13 @@
 @import './components/notification-panel.css';
 @import './components/login.css';
 @import './components/search-map.css';
+@import './components/info-tooltip.css';
+@import './components/coming-soon.css';
 
 @import './pages/home.css';
 @import './pages/peer-connect.css';
 @import './pages/community-voices.css';
+@import './pages/my-learning.css';
 @import './pages/profile.css';
 @import './pages/chat.css';
 @import './pages/admin-content-review.css';

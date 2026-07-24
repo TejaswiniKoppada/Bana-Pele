@@ -101,16 +101,6 @@
   white-space: nowrap;
 }
 
-/* MOCK: location isn't real backend data — see utils/mockLocation.js. */
-.connection-card__location {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  margin-top: var(--space-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .connection-card__action-btn {
   flex-shrink: 0;
   white-space: nowrap;

@@ -77,3 +77,22 @@
   /* Accessibility */
   --focus-ring: 0 0 0 3px rgba(139, 92, 246, 0.38);
 }
+
+/*
+ * Role-based theme (see utils/helpers.js roleFromEmail) — same design system,
+ * different mode: mentee gets a deep, muted, professional green instead of
+ * mentor's purple, a different color family entirely rather than a hue
+ * nudge, so the two are unmistakable at a glance. Only the primary/accent
+ * swatches are overridden; every component already consumes these
+ * variables, so header, primary buttons, active-tab indicators, and
+ * side-nav highlights re-theme for free.
+ */
+[data-role='mentee'] {
+  --color-primary: #1d6e4a;
+  --color-primary-dark: #154f35;
+  --color-primary-darker: #0f3b27;
+  --color-accent: #25a76d;
+  --color-accent-dark: #23855a;
+  --color-accent-light: #e5f5ee;
+  --color-accent-light-hover: #d3eee2;
+}

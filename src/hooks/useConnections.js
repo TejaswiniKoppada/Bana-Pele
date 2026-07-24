@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { getMyConnections, searchConnections, searchMentorsByName } from '../services/connectionsService';
-import { attachMockLocation, parseRadiusKm } from '../utils/mockLocation';
 import { categoryForTier } from '../utils/mentorCategory';
 
 const MIN_SEARCHING_MS = 700;
@@ -13,7 +12,7 @@ export function useMyConnections() {
     let cancelled = false;
     getMyConnections()
       .then((data) => {
-        if (!cancelled) setConnections(data.map(attachMockLocation));
+        if (!cancelled) setConnections(data);
       })
       .catch((err) => {
         if (!cancelled) console.warn('getMyConnections failed:', err.message);
@@ -32,15 +31,13 @@ export function useMyConnections() {
 /**
  * `query` (free text) uses the real name-search endpoint when non-empty,
  * otherwise falls back to the directory listing — both already-existing,
- * unmodified service calls. `filters.distance` filters the enriched results
- * client-side against the MOCK distance attached below (see mockLocation.js);
- * it has no real server-side equivalent.
+ * unmodified service calls.
  *
  * `searching` stays true for at least MIN_SEARCHING_MS so the radar
  * transition is tied to the real request but never just flashes if the
  * response comes back very quickly.
  */
-export function useConnectionSearch(filters, query, searchToken) {
+export function useConnectionSearch(query, searchToken) {
   const [results, setResults] = useState(null);
   const [searching, setSearching] = useState(false);
 
@@ -52,15 +49,12 @@ export function useConnectionSearch(filters, query, searchToken) {
     const startedAt = Date.now();
 
     const trimmedQuery = query.trim();
-    const fetchResults = trimmedQuery ? searchMentorsByName(trimmedQuery) : searchConnections(filters);
+    const fetchResults = trimmedQuery ? searchMentorsByName(trimmedQuery) : searchConnections();
 
     fetchResults
       .then((data) => {
         if (cancelled) return;
-        const enriched = data.map(attachMockLocation).map((r) => ({ ...r, category: categoryForTier(r.tier) }));
-        const radiusKm = parseRadiusKm(filters.distance);
-        const filtered = radiusKm != null ? enriched.filter((r) => r.mockDistanceKm <= radiusKm) : enriched;
-        setResults(filtered);
+        setResults(data.map((r) => ({ ...r, category: categoryForTier(r.tier) })));
       })
       .catch((err) => {
         if (!cancelled) {
@@ -78,7 +72,7 @@ export function useConnectionSearch(filters, query, searchToken) {
     return () => {
       cancelled = true;
     };
-  }, [searchToken, filters, query]);
+  }, [searchToken, query]);
 
   return { results, searching };
 }

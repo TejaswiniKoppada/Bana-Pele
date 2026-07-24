@@ -130,6 +130,16 @@ export function FilterIcon(props) {
   );
 }
 
+export function InfoIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" {...props}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 11v5.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <circle cx="12" cy="8" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function ChevronRightIcon(props) {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
