@@ -9,6 +9,9 @@ import Recommended from '../pages/community-voices/recommended/Recommended';
 import Bookmarked from '../pages/community-voices/bookmarked/Bookmarked';
 import MyStories from '../pages/community-voices/my-stories/MyStories';
 import CommunityVoices from '../pages/community-voices/CommunityVoices';
+import MyLearning from '../pages/my-learning/MyLearning';
+import MyLearningRecommended from '../pages/my-learning/recommended/Recommended';
+import MyLearningInProgress from '../pages/my-learning/in-progress/InProgress';
 
 export default function AppRouter() {
   return (
@@ -26,6 +29,11 @@ export default function AppRouter() {
         <Route path="recommended" element={<Recommended />} />
         <Route path="bookmarked" element={<Bookmarked />} />
         <Route path="my-stories" element={<MyStories />} />
+      </Route>
+      <Route path="/my-learning" element={<MyLearning />}>
+        <Route index element={<Navigate to="recommended" replace />} />
+        <Route path="recommended" element={<MyLearningRecommended />} />
+        <Route path="in-progress" element={<MyLearningInProgress />} />
       </Route>
     </Routes>
   );

@@ -1,6 +1,5 @@
 /* Stylized custom graphic only — not a real map library or real tile/GPS
-   data. Pins are positioned via mock percentage coordinates (mockX/mockY),
-   see utils/mockLocation.js. */
+   data. Currently unreachable — see SearchMapView.jsx. */
 .search-map {
   margin: 0 var(--space-md) var(--space-md);
 }

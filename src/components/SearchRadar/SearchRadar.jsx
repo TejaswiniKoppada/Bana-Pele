@@ -1,4 +1,4 @@
-import { avatarColorForName, initialsForName } from '../../utils/helpers';
+import { initialsForName } from '../../utils/helpers';
 import '../../styles/components/search-radar.css';
 
 export default function SearchRadar({ name, location }) {
@@ -10,15 +10,16 @@ export default function SearchRadar({ name, location }) {
         <div className="search-radar__ring search-radar__ring--2" />
         <div className="search-radar__ring search-radar__ring--1" />
         <div className="search-radar__center">
+          {/* Always the current user's own avatar, so it uses the role theme color rather than the per-name palette used for other people's avatars. */}
           <div
             className="search-radar__avatar"
-            style={{ background: avatarColorForName(name) }}
+            style={{ background: 'var(--color-primary)' }}
           >
             {initialsForName(name)}
           </div>
           <div className="search-radar__tag">
             <strong>{name}</strong>
-            <span>{location}</span>
+            {location && <span>{location}</span>}
           </div>
         </div>
       </div>

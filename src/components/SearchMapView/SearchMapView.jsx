@@ -2,10 +2,11 @@ import { PeopleIcon, BuildingIcon } from '../../assets/icons';
 import '../../styles/components/search-map.css';
 
 /**
- * Stylized, non-interactive map — a custom graphic laid out with mock
- * percentage positions (see utils/mockLocation.js), not a real map library
- * or real tile/GPS data. Category counts come from utils/mentorCategory.js,
- * an approximation of real designation data.
+ * Stylized, non-interactive map — a custom graphic, not a real map library
+ * or real tile/GPS data. Currently unreachable (disabled from Search.jsx):
+ * pin placement needs real coordinates that don't exist yet — Elevate's
+ * confirmed Location field is free text, not geocoded. Category counts come
+ * from utils/mentorCategory.js, an approximation of real designation data.
  */
 export default function SearchMapView({ results, currentUserName, currentUserLocation }) {
   const counts = results.reduce(
@@ -67,20 +68,21 @@ export default function SearchMapView({ results, currentUserName, currentUserLoc
             <PeopleIcon />
           </div>
           <span className="search-map__pin-label search-map__pin-label--you">
-            {currentUserName} (you) · {currentUserLocation}
+            {currentUserName} (you){currentUserLocation ? ` · ${currentUserLocation}` : ''}
           </span>
         </div>
         {results.map((connection) => (
           <div
             key={connection.id}
             className="search-map__pin"
-            style={{ left: `${connection.mockX}%`, top: `${connection.mockY}%` }}
+            style={{ left: `${connection.mapX ?? 50}%`, top: `${connection.mapY ?? 50}%` }}
           >
             <div className="search-map__pin-icon">
               {connection.category === 'local-councils' ? <BuildingIcon /> : <PeopleIcon />}
             </div>
             <span className="search-map__pin-label">
-              {connection.name} · {connection.mockLocation}
+              {connection.name}
+              {connection.location ? ` · ${connection.location}` : ''}
             </span>
           </div>
         ))}

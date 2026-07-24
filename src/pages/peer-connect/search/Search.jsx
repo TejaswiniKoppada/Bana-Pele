@@ -8,30 +8,21 @@ import SearchMapView from '../../../components/SearchMapView/SearchMapView';
 import { useConnectionSearch } from '../../../hooks/useConnections';
 import { useAppState } from '../../../context/AppStateContext';
 import { initiateConnection } from '../../../services/connectionsService';
-import { mockLocationForId } from '../../../utils/mockLocation';
 
 const DEFAULT_CONNECT_MESSAGE = 'Hi, I would like to connect with you.';
+const MAP_NOT_YET_AVAILABLE = 'Not yet available — coming soon';
 
 export default function Search() {
-  const { state, setPeerConnectFilters } = useAppState();
-  const { peerConnectFilters, currentUser } = state;
+  const { state } = useAppState();
+  const { currentUser } = state;
   const [query, setQuery] = useState('');
   const [searchToken, setSearchToken] = useState(0);
-  const { results, searching } = useConnectionSearch(peerConnectFilters, query, searchToken);
+  const { results, searching } = useConnectionSearch(query, searchToken);
   const [requests, setRequests] = useState({}); // { [userId]: { state: 'sending'|'sent'|'error', error?: string } }
-  const [view, setView] = useState('list'); // 'list' | 'map'
+  const [view] = useState('list'); // Map view disabled — see search-view-toggle__btn--disabled below.
   const navigate = useNavigate();
 
-  // MOCK: the logged-in user's own location, same fabricated source as
-  // every result's location — see utils/mockLocation.js.
-  const currentUserLocation = mockLocationForId(currentUser.id);
-
-  // Filter changes re-search immediately; typing debounces so the real
-  // name-search endpoint isn't called on every keystroke.
-  useEffect(() => {
-    setSearchToken((token) => token + 1);
-  }, [peerConnectFilters]);
-
+  // Typing debounces so the real name-search endpoint isn't called on every keystroke.
   useEffect(() => {
     const timeout = setTimeout(() => setSearchToken((token) => token + 1), 400);
     return () => clearTimeout(timeout);
@@ -64,24 +55,22 @@ export default function Search() {
   return (
     <div>
       <SearchBar value={query} onChange={setQuery} placeholder="Search mentors" />
-      <FilterBar filters={peerConnectFilters} onChange={setPeerConnectFilters} />
+      <FilterBar />
 
-      {(searching || !results) && (
-        <SearchRadar name={currentUser.name} location={currentUserLocation.name} />
-      )}
+      {(searching || !results) && <SearchRadar name={currentUser.name} />}
 
       {!searching && results && (
         <>
           <div className="search-view-toggle">
             <button
               className={`search-view-toggle__btn${view === 'list' ? ' search-view-toggle__btn--active' : ''}`}
-              onClick={() => setView('list')}
             >
               List
             </button>
             <button
-              className={`search-view-toggle__btn${view === 'map' ? ' search-view-toggle__btn--active' : ''}`}
-              onClick={() => setView('map')}
+              className="search-view-toggle__btn search-view-toggle__btn--disabled"
+              disabled
+              title={MAP_NOT_YET_AVAILABLE}
             >
               Map
             </button>
@@ -102,13 +91,7 @@ export default function Search() {
             </div>
           )}
 
-          {view === 'map' && (
-            <SearchMapView
-              results={results}
-              currentUserName={currentUser.name}
-              currentUserLocation={currentUserLocation.name}
-            />
-          )}
+          {view === 'map' && <SearchMapView results={results} currentUserName={currentUser.name} />}
         </>
       )}
     </div>

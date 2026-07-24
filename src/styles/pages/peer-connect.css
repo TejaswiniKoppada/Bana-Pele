@@ -24,3 +24,8 @@
   border-color: var(--color-primary);
   color: var(--color-text-on-primary);
 }
+
+.search-view-toggle__btn--disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}

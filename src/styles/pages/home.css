@@ -6,6 +6,28 @@
   margin: var(--space-md) var(--space-md) var(--space-md);
 }
 
+.profile-card__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: var(--space-xs);
+  margin: calc(var(--space-xs) * -1);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-base);
+}
+
+.profile-card__identity:hover {
+  background: var(--color-surface-sunken);
+}
+
 .profile-card__body {
   flex: 1;
   min-width: 0;

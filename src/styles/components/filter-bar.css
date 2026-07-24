@@ -29,6 +29,7 @@
 
 .filter-bar__row {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-md);
   padding: var(--space-md);
   background: var(--color-surface);
@@ -47,7 +48,7 @@
 }
 
 .filter-bar__field {
-  flex: 1;
+  flex: 1 1 130px;
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
@@ -72,4 +73,16 @@
 
 .filter-bar__field select:focus-visible {
   border-color: var(--color-accent);
+}
+
+.filter-bar__field-note {
+  font-style: normal;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.filter-bar__field--disabled select {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
 }

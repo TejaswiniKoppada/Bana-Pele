@@ -85,17 +85,8 @@ export async function getMyConnections() {
   return (result.data ?? []).map(mapAcceptedConnection).filter(Boolean);
 }
 
-/**
- * Search tab — browses the mentor directory (6.1).
- *
- * NOTE: the real API has no distance or tier/badge concept (mentors carry
- * `designation`/`area_of_expertise`/`experience` instead), so `filters.distance`
- * and a non-"All" `filters.type` currently have no server-side equivalent to
- * filter by. Kept as accepted parameters purely so the existing FilterBar UI
- * needs no changes — see the integration summary for what this means in
- * practice and what a real fix would require (relabeling the filter itself).
- */
-export async function searchConnections(filters) {
+/** Search tab — browses the mentor directory (6.1). */
+export async function searchConnections() {
   const result = await apiRequest(
     '/mentoring/v1/mentors/list?page=1&limit=50&search=&directory=true&search_on='
   );

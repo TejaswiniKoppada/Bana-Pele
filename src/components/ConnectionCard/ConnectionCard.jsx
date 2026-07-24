@@ -8,8 +8,9 @@ export default function ConnectionCard({
   onSendRequest,
   requestState,
   requestError,
+  avatarColor,
 }) {
-  const { name, tier, connectedOn, image, mockLocation, mockDistanceKm } = connection;
+  const { name, tier, connectedOn, image } = connection;
 
   function handleChatClick(e) {
     e.stopPropagation();
@@ -33,7 +34,7 @@ export default function ConnectionCard({
       {image ? (
         <img className="card__avatar card__avatar--photo" src={image} alt="" />
       ) : (
-        <div className="card__avatar" style={{ background: avatarColorForName(name) }}>
+        <div className="card__avatar" style={{ background: avatarColor || avatarColorForName(name) }}>
           {initialsForName(name)}
         </div>
       )}
@@ -41,12 +42,6 @@ export default function ConnectionCard({
         <p className="connection-card__name">{name}</p>
         <p className="connection-card__tier">{tier}</p>
         {connectedOn && <p className="connection-card__date">Connected On: {formatDate(connectedOn)}</p>}
-        {mockLocation && (
-          <p className="connection-card__location">
-            {mockLocation}
-            {mockDistanceKm != null ? ` · ${mockDistanceKm} km away` : ''}
-          </p>
-        )}
         {requestState === 'error' && requestError && (
           <p className="connection-card__request-error">{requestError}</p>
         )}

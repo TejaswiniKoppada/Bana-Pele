@@ -40,6 +40,14 @@ export function getYouTubeThumbnailUrl(url) {
   return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
 }
 
+/** Elevate's login response carries no per-user mentor/mentee field (confirmed
+ * live — `organizations[].roles` lists every role the org offers, not which
+ * one this account has), so the login identifier is the only signal already
+ * in auth state that tells the two accounts apart. Defaults to 'mentee'. */
+export function roleFromEmail(email) {
+  return /mentor/i.test(email || '') ? 'mentor' : 'mentee';
+}
+
 export function formatDate(isoDate) {
   return new Date(isoDate).toLocaleDateString('en-GB', {
     day: '2-digit',
