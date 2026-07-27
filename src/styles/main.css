@@ -1,31 +1,7 @@
-@import './base/reset.css';
-@import './base/variables.css';
-@import './base/typography.css';
-
-@import './components/header.css';
-@import './components/side-nav.css';
-@import './components/tabs.css';
-@import './components/cards.css';
-@import './components/buttons.css';
-@import './components/badges.css';
-@import './components/search-bar.css';
-@import './components/filter-bar.css';
-@import './components/search-radar.css';
-@import './components/install-prompt.css';
-@import './components/offline-banner.css';
-@import './components/notification-panel.css';
-@import './components/login.css';
-@import './components/search-map.css';
-@import './components/info-tooltip.css';
-@import './components/coming-soon.css';
-
-@import './pages/home.css';
-@import './pages/peer-connect.css';
-@import './pages/community-voices.css';
-@import './pages/my-learning.css';
-@import './pages/profile.css';
-@import './pages/chat.css';
-@import './pages/admin-content-review.css';
+@import './reset.css';
+@import './variables.css';
+@import './typography.css';
+@import './globals.css';
 
 .app-shell {
   min-height: 100%;

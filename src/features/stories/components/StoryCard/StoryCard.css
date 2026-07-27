@@ -1,0 +1,209 @@
+.story-card__thumbnail {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-card__thumbnail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.28) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.story-card__bookmark-btn {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  z-index: 2;
+  color: var(--color-text-on-primary);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: rgba(20, 15, 33, 0.28);
+}
+
+.story-card__bookmark-btn:hover {
+  background: rgba(20, 15, 33, 0.42);
+}
+
+.story-card__delete-btn {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 2;
+  color: var(--color-text-on-primary);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: rgba(20, 15, 33, 0.28);
+}
+
+.story-card__delete-btn:hover {
+  background: rgba(229, 72, 77, 0.6);
+}
+
+.story-card__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-card__play-btn {
+  position: relative;
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-primary);
+  backdrop-filter: blur(2px);
+}
+
+.story-card:hover .story-card__play-btn {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.story-card__player {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+}
+
+.story-card__player-close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-on-primary);
+  background: rgba(20, 15, 33, 0.5);
+}
+
+.story-card__player-close:hover {
+  background: rgba(20, 15, 33, 0.7);
+}
+
+.story-card__body {
+  padding: var(--space-md);
+  height: 96px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.story-card__title {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-sm);
+  color: var(--color-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.story-card__source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-accent-dark);
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+}
+
+.story-card__source:hover {
+  text-decoration: underline;
+}
+
+.story-card__source span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* My Stories only (Recommended/Bookmarked never pass onShare). */
+.story-card__share {
+  padding: 0 var(--space-md) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.story-card__share-toggle {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.story-card__share-toggle:hover {
+  background: var(--color-accent-light);
+}
+
+.story-card__share-row {
+  display: flex;
+  gap: var(--space-sm);
+  animation: filter-row-in var(--transition-base);
+}
+
+.story-card__share-btn {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand, var(--color-primary));
+  color: #fff;
+}
+
+.story-card__share-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.story-card__share-status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.story-card__share-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-badge);
+  margin: 0;
+}

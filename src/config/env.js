@@ -12,7 +12,7 @@ export const TENANT_CODE = import.meta.env.VITE_TENANT_CODE || 'banapele';
 export const TIMEZONE = 'Asia/Calcutta';
 
 // Chat runs on a separate Rocket.Chat-based service with its own auth token
-// (see services/chatService.js) — unrelated to the Mentoring API above.
+// (see features/chat/api/chat.api.js) — unrelated to the Mentoring API above.
 // Confirmed to accept direct cross-origin requests (no Origin-based tenant
 // resolution like the Mentoring API), so no dev-proxy is needed for it.
 export const CHAT_API_BASE_URL = import.meta.env.VITE_CHAT_API_BASE_URL || 'https://elevate-chat.shikshalokam.org';
