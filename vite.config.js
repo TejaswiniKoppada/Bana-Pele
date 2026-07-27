@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import path from 'node:path';
 
 // The Elevate API resolves tenant/org by the request's Origin header, requiring
 // it to be exactly the deployed portal origin. Browsers won't let client-side
@@ -12,6 +13,11 @@ const ELEVATE_API_ORIGIN = 'https://elevate-apis.shikshalokam.org';
 const ELEVATE_PORTAL_ORIGIN = 'https://elevate-bana-pele.shikshalokam.org';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   server: {
     proxy: {
       '/elevate-api': {
