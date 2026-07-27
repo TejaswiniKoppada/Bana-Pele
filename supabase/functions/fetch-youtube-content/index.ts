@@ -68,6 +68,11 @@ Deno.serve(async (req) => {
         channel_title: item.snippet?.channelTitle ?? '',
         published_at: item.snippet?.publishedAt ?? null,
         search_keyword: keyword,
+        // Keywords are all South-Africa-scoped now, so results are trusted
+        // enough to skip manual admin review and go straight to approved.
+        status: 'approved',
+        reviewed_by: 'auto-ingest',
+        reviewed_at: new Date().toISOString(),
       }));
 
       if (rows.length === 0) {
