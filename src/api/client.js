@@ -1,4 +1,4 @@
-import { API_BASE_URL, ORG_ID, TIMEZONE } from '@/config/env.js';
+import { API_BASE_URL, ORG_ID, SUPABASE_ANON_KEY, TIMEZONE } from '@/config/env.js';
 import { getAccessToken, getOrgId } from '@/storage/tokenStorage.js';
 import { ApiError } from './apiError.js';
 
@@ -19,6 +19,16 @@ import { ApiError } from './apiError.js';
  */
 export async function apiRequest(path, { method = 'GET', body, auth = true, returnFull = false } = {}) {
   const headers = { 'content-type': 'application/json' };
+
+  // Harmless when API_BASE_URL points straight at Elevate or the dev proxy
+  // (both ignore headers they don't recognize) — but required when it points
+  // at the elevate-proxy Supabase Edge Function instead (see
+  // src/config/env.js), since Supabase rejects any Edge Function call
+  // without a valid anon-key bearer token before the function even runs.
+  if (SUPABASE_ANON_KEY) {
+    headers['authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+    headers['apikey'] = SUPABASE_ANON_KEY;
+  }
 
   if (auth) {
     const token = getAccessToken();
