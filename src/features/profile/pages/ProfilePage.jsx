@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeftIcon, ChevronRightIcon } from '@/assets/icons';
+import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from '@/assets/icons';
 import ConnectionCard from '@/components/common/ConnectionCard/ConnectionCard';
 import InfoTooltip from '@/components/reusable/InfoTooltip/InfoTooltip';
 import { useAppState } from '@/app/providers/AppStateProvider';
@@ -25,23 +25,28 @@ const ELP_TIER_INFO =
   'verifying baseline health, safety, and practitioner capability.\n' +
   'Gold: granted when higher-level infrastructure, compliance, and qualification standards are met.';
 
-function CollapsibleSection({ title, defaultOpen = false, children }) {
+function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="card profile-section">
-      <button className="profile-section__header" onClick={() => setOpen((v) => !v)}>
-        <span>{title}</span>
-        <ChevronRightIcon style={{ transform: `rotate(${open ? -90 : 90}deg)` }} />
+      <button className="profile-section__header" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <span className="profile-section__header-title">
+          {Icon && <Icon className="profile-section__header-icon" />}
+          {title}
+        </span>
+        <ChevronRightIcon
+          className={`profile-section__chevron${open ? ' profile-section__chevron--open' : ''}`}
+        />
       </button>
       {open && <div className="profile-section__body">{children}</div>}
     </div>
   );
 }
 
-function ProfileField({ label, tooltip, tooltipLabel, children }) {
+function ProfileField({ label, tooltip, tooltipLabel, wide, children }) {
   if (!children || (Array.isArray(children) && children.length === 0)) return null;
   return (
-    <div className="profile-field">
+    <div className={`profile-field${wide ? ' profile-field--wide' : ''}`}>
       <span className="profile-field__label">
         {label}
         {tooltip && <InfoTooltip label={tooltipLabel || `About ${label}`} text={tooltip} />}
@@ -87,52 +92,50 @@ export default function ProfilePage() {
         <ChevronLeftIcon />
       </button>
 
-      {loading && <p className="page-status">Loading profile…</p>}
-      {!loading && !profile && <p className="page-status">This profile isn't available right now.</p>}
-
       {profile && (
-        <>
+        <div className="profile-card-accent">
           <ConnectionCard
             connection={profile}
             onChatClick={isOwnProfile ? undefined : handleChatClick}
             avatarColor={isOwnProfile ? 'var(--color-primary)' : undefined}
           />
+        </div>
+      )}
 
-          <CollapsibleSection title="Peer Information" defaultOpen>
-            <ProfileField label="About">{profile.about}</ProfileField>
-            <ProfileField label="Location">{profile.location}</ProfileField>
-            <ProfileField label="Years of Experience">
-              {profile.experience ? `${profile.experience} years` : ''}
-            </ProfileField>
-            <ProfileField label="ELP Type" tooltip={ELP_TYPE_INFO} tooltipLabel="What is ELP Type?">
-              {profile.elpType}
-            </ProfileField>
-            <ProfileField label="ELP Tier" tooltip={ELP_TIER_INFO} tooltipLabel="What is ELP Tier?">
-              {profile.elpTier}
-            </ProfileField>
-            <ProfileField label="Designation">{profile.designations}</ProfileField>
-            <ProfileField label="Area of Expertise">{profile.areasOfExpertise}</ProfileField>
-            <ProfileField label="Organization">{profile.organization}</ProfileField>
-            <ProfileField label="Education Qualification">{profile.educationQualification}</ProfileField>
-            {!profile.about &&
-              !profile.location &&
-              !profile.experience &&
-              !profile.elpType &&
-              !profile.elpTier &&
-              !profile.designations?.length &&
-              !profile.areasOfExpertise?.length &&
-              !profile.organization &&
-              !profile.educationQualification && (
-                <p className="page-status">No further profile details shared yet.</p>
-              )}
-          </CollapsibleSection>
+      {loading && <p className="page-status">Loading profile…</p>}
+      {!loading && !profile && <p className="page-status">This profile isn't available right now.</p>}
 
-          <CollapsibleSection title="Peer Reviews">
-            {profile.rating ? <p className="profile-field__value">{profile.rating}</p> : (
-              <p className="page-status">No reviews yet.</p>
+      {profile && (
+        <CollapsibleSection title="Peer Information" icon={InfoIcon} defaultOpen>
+          <ProfileField label="About" wide>
+            {profile.about}
+          </ProfileField>
+          <ProfileField label="Location">{profile.location}</ProfileField>
+          <ProfileField label="Years of Experience">
+            {profile.experience ? `${profile.experience} years` : ''}
+          </ProfileField>
+          <ProfileField label="ELP Type" tooltip={ELP_TYPE_INFO} tooltipLabel="What is ELP Type?">
+            {profile.elpType}
+          </ProfileField>
+          <ProfileField label="ELP Tier" tooltip={ELP_TIER_INFO} tooltipLabel="What is ELP Tier?">
+            {profile.elpTier}
+          </ProfileField>
+          <ProfileField label="Designation">{profile.designations}</ProfileField>
+          <ProfileField label="Area of Expertise">{profile.areasOfExpertise}</ProfileField>
+          <ProfileField label="Organization">{profile.organization}</ProfileField>
+          <ProfileField label="Education Qualification">{profile.educationQualification}</ProfileField>
+          {!profile.about &&
+            !profile.location &&
+            !profile.experience &&
+            !profile.elpType &&
+            !profile.elpTier &&
+            !profile.designations?.length &&
+            !profile.areasOfExpertise?.length &&
+            !profile.organization &&
+            !profile.educationQualification && (
+              <p className="page-status">No further profile details shared yet.</p>
             )}
-          </CollapsibleSection>
-        </>
+        </CollapsibleSection>
       )}
     </div>
   );
