@@ -40,6 +40,18 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          # Vite bakes VITE_* vars in at build time, not read at runtime —
+          # unset, these fall back to relative/dev-only defaults (see
+          # src/config/env.js) that only resolve correctly behind the Vite
+          # dev server's proxy. A static GitHub Pages build has no proxy, so
+          # the real absolute API host must be supplied here instead.
+          VITE_API_BASE_URL: https://elevate-apis.shikshalokam.org
+          # Community Voices' Supabase calls need these too — add the real
+          # values (same ones in your local .env.local) as repo secrets:
+          # Settings → Secrets and variables → Actions → New repository secret.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       # GitHub Pages has no server-side rewrite for client-side routes — a
       # direct visit or refresh on e.g. /Bana-Pele/peer-connect would 404
