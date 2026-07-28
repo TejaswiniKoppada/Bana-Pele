@@ -23,7 +23,7 @@ export default function MyConnectionsPage() {
 
   return (
     <div>
-      <SearchBar value={query} onChange={setQuery} placeholder="Search" onFilterClick={() => {}} />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search" />
       {loading && <p className="page-status">Loading connections…</p>}
       {!loading && connections.length === 0 && (
         <p className="page-status">

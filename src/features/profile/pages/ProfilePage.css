@@ -2,6 +2,13 @@
   padding-bottom: var(--space-lg);
 }
 
+/* A thin colored top edge on the profile card is enough of an accent —
+   the app's own header bar sits right above this page, so a second full
+   band of color here read as heavy/redundant rather than polished. */
+.profile-card-accent .card {
+  border-top: 3px solid var(--color-primary);
+}
+
 .profile-page__back {
   display: flex;
   align-items: center;
@@ -32,6 +39,31 @@
   color: var(--color-primary);
 }
 
+.profile-section__header:hover {
+  background: var(--color-surface-sunken);
+}
+
+.profile-section__header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.profile-section__header-icon {
+  flex-shrink: 0;
+}
+
+.profile-section__chevron {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  transform: rotate(90deg);
+  transition: transform var(--transition-base);
+}
+
+.profile-section__chevron--open {
+  transform: rotate(-90deg);
+}
+
 .profile-section__body {
   padding: 0 var(--space-md) var(--space-md);
   display: flex;
@@ -39,6 +71,18 @@
   gap: var(--space-md);
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-md);
+}
+
+@media (min-width: 560px) {
+  .profile-section__body {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md) var(--space-lg);
+  }
+
+  .profile-field--wide {
+    grid-column: 1 / -1;
+  }
 }
 
 .profile-field__label {
@@ -55,4 +99,11 @@
   color: var(--color-text);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
+}
+
+.profile-field--wide .profile-field__value {
+  font-style: italic;
+  color: var(--color-text-secondary);
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--space-md);
 }

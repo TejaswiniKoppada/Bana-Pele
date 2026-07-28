@@ -43,6 +43,13 @@
   color: var(--color-text-muted);
 }
 
+/* Overrides reset.css's global `input:focus-visible` ring — that rule is
+   right for standalone inputs, but here it drew a second, tighter ring
+   inside the pill on top of .search-bar__field's own shadow. */
+.search-bar__input:focus-visible {
+  box-shadow: none;
+}
+
 .search-bar__filter-btn {
   width: 42px;
   height: 42px;
