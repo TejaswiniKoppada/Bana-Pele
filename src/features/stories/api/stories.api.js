@@ -14,6 +14,8 @@ export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 
 const BUCKET = 'story-uploads';
 
+export const MY_STORIES_PAGE_SIZE = 6;
+
 /**
  * Client-side check before any upload starts — mirrored by the bucket's own
  * file_size_limit/allowed_mime_types as a server-side backstop, but this is
@@ -43,15 +45,20 @@ function mapUserStory(row) {
   };
 }
 
-export async function getUserStories(userId) {
-  const { data, error } = await supabase
+/** One page of this user's posted stories (page is 1-based), newest first. */
+export async function getUserStories(userId, { page = 1, pageSize = MY_STORIES_PAGE_SIZE } = {}) {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
     .from('user_stories')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', String(userId))
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) throw error;
-  return (data ?? []).map(mapUserStory);
+  return { items: (data ?? []).map(mapUserStory), totalCount: count ?? 0 };
 }
 
 export async function createLinkStory(userId, { title, videoUrl }) {

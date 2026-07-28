@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SearchBar from '@/components/reusable/SearchBar/SearchBar';
+import Loader from '@/components/reusable/Loader/Loader';
+import Pagination from '@/components/reusable/Pagination/Pagination';
 import StoryCard from '@/features/stories/components/StoryCard/StoryCard';
 import { CloseIcon, LinkIcon, UploadIcon, VideoIcon } from '@/assets/icons';
 import { useUserStories } from '@/features/stories/hooks/useUserStories';
@@ -365,9 +367,18 @@ function CreateStoryModal({ open, onClose, onPost }) {
 
 export default function MyStoriesPage() {
   const { state } = useAppState();
-  const { stories, loading, error, addLinkStory, addUploadStory, shareStory, deleteStory } = useUserStories(
-    state.currentUser?.id
-  );
+  const {
+    stories,
+    loading,
+    error,
+    page,
+    totalPages,
+    goToPage,
+    addLinkStory,
+    addUploadStory,
+    shareStory,
+    deleteStory,
+  } = useUserStories(state.currentUser?.id);
 
   const [query, setQuery] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
@@ -408,7 +419,7 @@ export default function MyStoriesPage() {
         Create &amp; post your own story
       </button>
 
-      {loading && <p className="page-status">Loading stories…</p>}
+      {loading && <Loader label="Loading your stories…" />}
       {!loading && error && <p className="page-status">{error}</p>}
       {deleteError && (
         <p className="page-status" role="alert">
@@ -423,10 +434,9 @@ export default function MyStoriesPage() {
         </p>
       )}
 
-      <div className="story-list">
-        {!loading &&
-          !error &&
-          visibleStories.map((story) => (
+      {!loading && !error && visibleStories.length > 0 && (
+        <div className="story-list">
+          {visibleStories.map((story) => (
             <StoryCard
               key={story.id}
               story={story}
@@ -435,7 +445,10 @@ export default function MyStoriesPage() {
               onDelete={() => handleDelete(story)}
             />
           ))}
-      </div>
+        </div>
+      )}
+
+      {!loading && !error && <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />}
 
       <CreateStoryModal open={createOpen} onClose={() => setCreateOpen(false)} onPost={postStory} />
     </div>
