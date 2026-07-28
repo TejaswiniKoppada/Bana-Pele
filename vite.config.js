@@ -12,7 +12,14 @@ import path from 'node:path';
 const ELEVATE_API_ORIGIN = 'https://elevate-apis.shikshalokam.org';
 const ELEVATE_PORTAL_ORIGIN = 'https://elevate-bana-pele.shikshalokam.org';
 
+// GitHub Pages project sites are served from /<repo-name>/, not / — set by
+// the deploy workflow's PAGES_BASE env var so `npm run build` picks it up
+// there; unset (defaults to '/') for local dev and any other deployment
+// target that IS served from the origin root.
+const BASE = process.env.PAGES_BASE || '/';
+
 export default defineConfig({
+  base: BASE,
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -39,7 +46,8 @@ export default defineConfig({
         name: 'Elevate - Community Connect & Community Voices',
         short_name: 'Elevate',
         description: 'Community Connect and Community Voices for Bana Pele ELP practitioners',
-        start_url: '/',
+        start_url: BASE,
+        scope: BASE,
         display: 'standalone',
         background_color: '#F3F1F8',
         theme_color: '#4B2E83',
@@ -59,7 +67,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallback: '/offline.html',
+        navigateFallback: `${BASE}offline.html`,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
