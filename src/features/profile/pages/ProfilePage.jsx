@@ -1,41 +1,38 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from '@/assets/icons';
-import ConnectionCard from '@/components/common/ConnectionCard/ConnectionCard';
-import InfoTooltip from '@/components/reusable/InfoTooltip/InfoTooltip';
-import { useAppState } from '@/app/providers/AppStateProvider';
-import { getConnectionInfo } from '@/features/connections/api/connections.api';
-import './ProfilePage.css';
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from "@/assets/icons";
+import ConnectionCard from "@/components/common/ConnectionCard/ConnectionCard";
+import RecommendLearningPanel from "@/components/RecommendLearningPanel/RecommendLearningPanel";
+import { useAppState } from "@/app/providers/AppStateProvider";
+import {
+  getConnectionInfo,
+  getMyConnections,
+  initiateConnection,
+} from "@/features/connections/api/connections.api";
+import "./ProfilePage.css";
 
-// Confirmed definitions (ARCHITECTURE_UPDATE_POST_CALL.md, Section 2.1) — the
-// copy is final even though the fields themselves aren't live from Elevate
-// yet, so it ships now and needs no changes once the fields appear.
-const ELP_TYPE_INFO =
-  'Centre-Based: crèches and preschools — more than 6 children attending, run in a fixed location, ' +
-  'children spend more than 16 hours/week at the space.\n\n' +
-  'Non-Centre-Based: childminders, playgroups, toy libraries, mobile programmes — 6 or fewer children ' +
-  'at once, may be a mobile space (e.g. a travelling truck).';
+const DEFAULT_CONNECT_MESSAGE = "Hi, I would like to connect with you.";
 
-const ELP_TIER_INFO =
-  'Awarded by government based on certifications and achievements — not self-selected.\n\n' +
-  'Pre-Bronze: haven’t set up or registered yet.\n' +
-  'Bronze: granted upon initial application submission — entry-level recognition, assigns a unique ' +
-  'National ECD Identifier Number.\n' +
-  'Silver: awarded after site visits by social workers or Environmental Health Practitioners (EHPs), ' +
-  'verifying baseline health, safety, and practitioner capability.\n' +
-  'Gold: granted when higher-level infrastructure, compliance, and qualification standards are met.';
-
-function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }) {
+function CollapsibleSection({
+  title,
+  icon: Icon,
+  defaultOpen = false,
+  children,
+}) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="card profile-section">
-      <button className="profile-section__header" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <button
+        className="profile-section__header"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
         <span className="profile-section__header-title">
           {Icon && <Icon className="profile-section__header-icon" />}
           {title}
         </span>
         <ChevronRightIcon
-          className={`profile-section__chevron${open ? ' profile-section__chevron--open' : ''}`}
+          className={`profile-section__chevron${open ? " profile-section__chevron--open" : ""}`}
         />
       </button>
       {open && <div className="profile-section__body">{children}</div>}
@@ -43,15 +40,16 @@ function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }
   );
 }
 
-function ProfileField({ label, tooltip, tooltipLabel, wide, children }) {
-  if (!children || (Array.isArray(children) && children.length === 0)) return null;
+function ProfileField({ label, children, wide }) {
+  if (!children || (Array.isArray(children) && children.length === 0))
+    return null;
   return (
-    <div className={`profile-field${wide ? ' profile-field--wide' : ''}`}>
-      <span className="profile-field__label">
-        {label}
-        {tooltip && <InfoTooltip label={tooltipLabel || `About ${label}`} text={tooltip} />}
-      </span>
-      <p className="profile-field__value">{Array.isArray(children) ? children.join(', ') : children}</p>
+    <div className={`profile-field${wide ? " profile-field--wide" : ""}`}>
+      <span className="profile-field__label">{label}</span>
+
+      <p className="profile-field__value">
+        {Array.isArray(children) ? children.join(", ") : children}
+      </p>
     </div>
   );
 }
@@ -63,14 +61,35 @@ export default function ProfilePage() {
   const { state } = useAppState();
   const [profile, setProfile] = useState(location.state?.profile ?? null);
   const [loading, setLoading] = useState(!location.state?.profile);
-  const isOwnProfile = profile != null && String(profile.id) === String(state.currentUser.id);
+  const [requestState, setRequestState] = useState(null);
+  const [requestError, setRequestError] = useState("");
+  const isOwnProfile =
+    profile != null && String(profile.id) === String(state.currentUser.id);
+  // Real connection status (6.3, connections/getInfo) — undefined/anything
+  // other than "ACCEPTED" means no accepted connection exists yet, confirmed
+  // live (an unconnected account's getInfo call comes back with no `status`
+  // at all, not an error). Chat only makes sense once accepted; otherwise
+  // this is a not-yet-connected profile, so offer Send Request instead —
+  // same LinkedIn-style "view profile, then connect" flow as tapping a
+  // result used to give from the old List/Map card.
+  const isConnected = profile?.connectionStatus === "ACCEPTED";
 
   useEffect(() => {
-    if (profile) return;
     let cancelled = false;
+    if (!profile) setLoading(true);
+
+    // Always fetch fresh (6.3, connections/getInfo) rather than trusting a
+    // pre-populated `profile` from navigation state alone — Search/My
+    // Connections pass mapMentorSummary/mapAcceptedConnection objects,
+    // neither of which carries `connectionStatus` (only getConnectionInfo's
+    // mapping does), so it has to come from here for Chat vs Send Request
+    // to render correctly regardless of which screen linked here.
     getConnectionInfo(userId)
       .then((data) => {
-        if (!cancelled) setProfile(data);
+        if (cancelled || !data) return;
+        setProfile((prev) =>
+          prev ? { ...prev, connectionStatus: data.connectionStatus } : data,
+        );
       })
       .catch(() => {})
       .finally(() => {
@@ -79,16 +98,71 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [userId, profile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // getConnectionInfo (above) never carries `roomId` (only mapAcceptedConnection
+  // does — see connectionsService.js) — if this profile arrived via a path
+  // other than My Connections (e.g. Search), `isConnected` can already be
+  // true here while `roomId` is still missing. Recommend Learning needs a
+  // real room to notify through, so recover it the same way Chat.jsx does
+  // when it's missing: look it up from the real accepted-connections list.
+  useEffect(() => {
+    if (!isConnected || profile?.roomId || !profile?.id) return;
+    let cancelled = false;
+    getMyConnections()
+      .then((list) => {
+        if (cancelled) return;
+        const match = list.find((c) => String(c.id) === String(profile.id));
+        if (match?.roomId)
+          setProfile((prev) =>
+            prev ? { ...prev, roomId: match.roomId } : prev,
+          );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, profile?.id, profile?.roomId]);
+
+  // Same real-chat navigation as the Chat button on ConnectionCard in My
+  // Connections (MyConnections.jsx) — this used to open WhatsApp, a leftover
+  // from before real chat was integrated.
 
   function handleChatClick(connection) {
-    const phoneQuery = encodeURIComponent(connection.name);
-    window.open(`https://wa.me/?text=${phoneQuery}`, '_blank', 'noreferrer');
+    navigate(`/peer-connect/chat/${connection.id}`, { state: { connection } });
+  }
+
+  async function handleSendRequest(connection) {
+    setRequestState("sending");
+    setRequestError("");
+    try {
+      const response = await initiateConnection(
+        connection.id,
+        DEFAULT_CONNECT_MESSAGE,
+      );
+      if (response?.status === "REQUESTED") {
+        setRequestState("sent");
+      } else {
+        setRequestState("error");
+        setRequestError(
+          response?.message || "Could not send the request. Please try again.",
+        );
+      }
+    } catch (err) {
+      setRequestState("error");
+      setRequestError(err.message);
+    }
   }
 
   return (
     <div className="profile-page">
-      <button className="profile-page__back" onClick={() => navigate(-1)} aria-label="Back">
+      <button
+        className="profile-page__back"
+        onClick={() => navigate(-1)}
+        aria-label="Back"
+      >
         <ChevronLeftIcon />
       </button>
 
@@ -96,44 +170,51 @@ export default function ProfilePage() {
         <div className="profile-card-accent">
           <ConnectionCard
             connection={profile}
-            onChatClick={isOwnProfile ? undefined : handleChatClick}
-            avatarColor={isOwnProfile ? 'var(--color-primary)' : undefined}
+            onChatClick={
+              isOwnProfile || !isConnected ? undefined : handleChatClick
+            }
+            onSendRequest={
+              isOwnProfile || isConnected ? undefined : handleSendRequest
+            }
+            requestState={requestState}
+            requestError={requestError}
+            avatarColor={isOwnProfile ? "var(--color-primary)" : undefined}
           />
+
+          {/* Mentor -> mentee only: hidden on your own profile and on anyone not yet an accepted connection. */}
+          {!isOwnProfile && isConnected && (
+            <RecommendLearningPanel
+              mentor={state.currentUser}
+              mentee={profile}
+            />
+          )}
         </div>
       )}
 
       {loading && <p className="page-status">Loading profile…</p>}
-      {!loading && !profile && <p className="page-status">This profile isn't available right now.</p>}
+      {!loading && !profile && (
+        <p className="page-status">This profile isn't available right now.</p>
+      )}
 
       {profile && (
-        <CollapsibleSection title="Peer Information" icon={InfoIcon} defaultOpen>
+        <CollapsibleSection title="Peer Information" defaultOpen>
           <ProfileField label="About" wide>
             {profile.about}
           </ProfileField>
           <ProfileField label="Location">{profile.location}</ProfileField>
-          <ProfileField label="Years of Experience">
-            {profile.experience ? `${profile.experience} years` : ''}
+          <ProfileField label="Area of Expertise">
+            {profile.areasOfExpertise}
           </ProfileField>
-          <ProfileField label="ELP Type" tooltip={ELP_TYPE_INFO} tooltipLabel="What is ELP Type?">
-            {profile.elpType}
+          <ProfileField label="Education Qualification">
+            {profile.educationQualification}
           </ProfileField>
-          <ProfileField label="ELP Tier" tooltip={ELP_TIER_INFO} tooltipLabel="What is ELP Tier?">
-            {profile.elpTier}
-          </ProfileField>
-          <ProfileField label="Designation">{profile.designations}</ProfileField>
-          <ProfileField label="Area of Expertise">{profile.areasOfExpertise}</ProfileField>
-          <ProfileField label="Organization">{profile.organization}</ProfileField>
-          <ProfileField label="Education Qualification">{profile.educationQualification}</ProfileField>
           {!profile.about &&
             !profile.location &&
-            !profile.experience &&
-            !profile.elpType &&
-            !profile.elpTier &&
-            !profile.designations?.length &&
             !profile.areasOfExpertise?.length &&
-            !profile.organization &&
             !profile.educationQualification && (
-              <p className="page-status">No further profile details shared yet.</p>
+              <p className="page-status">
+                No further profile details shared yet.
+              </p>
             )}
         </CollapsibleSection>
       )}

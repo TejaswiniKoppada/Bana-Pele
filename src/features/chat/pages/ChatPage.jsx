@@ -1,15 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeftIcon } from '@/assets/icons';
-import { avatarColorForName, initialsForName } from '@/utils/formatters';
-import { getMyConnections } from '@/features/connections/api/connections.api';
-import { getMyChatUserId, loadChatHistory, sendChatMessage } from '../api/chat.api';
-import './ChatPage.css';
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { ChevronLeftIcon } from "@/assets/icons";
+import { avatarColorForName, initialsForName } from "@/utils/formatters";
+import { getMyConnections } from "@/features/connections/api/connections.api";
+import {
+  getMyChatUserId,
+  loadChatHistory,
+  sendChatMessage,
+} from "../api/chat.api";
+import "./ChatPage.css";
 
 const POLL_INTERVAL_MS = 5000;
 
 function formatMessageTime(timestamp) {
-  return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 /**
@@ -23,12 +30,14 @@ export default function ChatPage() {
   const { connectionId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [connection, setConnection] = useState(location.state?.connection ?? null);
+  const [connection, setConnection] = useState(
+    location.state?.connection ?? null,
+  );
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState('');
-  const [draft, setDraft] = useState('');
+  const [error, setError] = useState("");
+  const [draft, setDraft] = useState("");
   const listRef = useRef(null);
 
   // Resolve the connection (and its room_id) if the Chat button didn't hand
@@ -62,16 +71,20 @@ export default function ChatPage() {
         const history = await loadChatHistory(connection.roomId);
         if (cancelled) return;
         setMessages(history);
-        setError('');
+        setError("");
       } catch (err) {
-        if (!cancelled && !silent) setError(err.message || 'Could not load messages.');
+        if (!cancelled && !silent)
+          setError(err.message || "Could not load messages.");
       } finally {
         if (!cancelled && !silent) setLoading(false);
       }
     }
 
     refresh({ silent: false });
-    const intervalId = setInterval(() => refresh({ silent: true }), POLL_INTERVAL_MS);
+    const intervalId = setInterval(
+      () => refresh({ silent: true }),
+      POLL_INTERVAL_MS,
+    );
 
     return () => {
       cancelled = true;
@@ -85,18 +98,30 @@ export default function ChatPage() {
     }
   }, [messages]);
 
+  // Chat fills the viewport below the header with its own internal scroll
+  // area (.chat-page__messages) — lock the outer page so it can't also
+  // scroll (e.g. from app-shell__content's trailing padding), which was
+  // producing two competing scrollbars. Scoped to this screen only: restored
+  // on unmount so nothing else is affected.
+  useEffect(() => {
+    document.body.classList.add("chat-page-open");
+    return () => {
+      document.body.classList.remove("chat-page-open");
+    };
+  }, []);
+
   async function handleSend(e) {
     e.preventDefault();
     const text = draft.trim();
     if (!text || !connection?.roomId || sending) return;
     setSending(true);
-    setDraft('');
+    setDraft("");
     try {
       const sent = await sendChatMessage(connection.roomId, text);
       setMessages((prev) => [...prev, sent]);
-      setError('');
+      setError("");
     } catch (err) {
-      setError(err.message || 'Could not send message.');
+      setError(err.message || "Could not send message.");
       setDraft(text);
     } finally {
       setSending(false);
@@ -108,13 +133,21 @@ export default function ChatPage() {
   return (
     <div className="chat-page">
       <div className="chat-page__header">
-        <button className="chat-page__back" onClick={() => navigate(-1)} aria-label="Back">
+        <button
+          className="chat-page__back"
+          onClick={() => navigate(-1)}
+          aria-label="Back"
+        >
           <ChevronLeftIcon />
         </button>
         {connection && (
           <>
             {connection.image ? (
-              <img className="card__avatar chat-page__avatar" src={connection.image} alt="" />
+              <img
+                className="card__avatar chat-page__avatar"
+                src={connection.image}
+                alt=""
+              />
             ) : (
               <div
                 className="card__avatar chat-page__avatar"
@@ -128,21 +161,32 @@ export default function ChatPage() {
         )}
       </div>
 
-      {!connection && !loading && <p className="page-status">This chat isn't available right now.</p>}
+      {!connection && !loading && (
+        <p className="page-status">This chat isn't available right now.</p>
+      )}
 
       {connection && (
         <>
           <div className="chat-page__messages" ref={listRef}>
             {loading && <p className="page-status">Loading messages…</p>}
-            {!loading && messages.length === 0 && <p className="page-status">No messages yet. Say hello!</p>}
+            {!loading && messages.length === 0 && (
+              <p className="page-status">No messages yet. Say hello!</p>
+            )}
             {!loading &&
               messages.map((message) => {
                 const isMine = message.senderId === myChatUserId;
                 return (
-                  <div key={message.id} className={`chat-bubble-row${isMine ? ' chat-bubble-row--mine' : ''}`}>
-                    <div className={`chat-bubble${isMine ? ' chat-bubble--mine' : ''}`}>
+                  <div
+                    key={message.id}
+                    className={`chat-bubble-row${isMine ? " chat-bubble-row--mine" : ""}`}
+                  >
+                    <div
+                      className={`chat-bubble${isMine ? " chat-bubble--mine" : ""}`}
+                    >
                       <p className="chat-bubble__text">{message.text}</p>
-                      <span className="chat-bubble__time">{formatMessageTime(message.timestamp)}</span>
+                      <span className="chat-bubble__time">
+                        {formatMessageTime(message.timestamp)}
+                      </span>
                     </div>
                   </div>
                 );
@@ -159,8 +203,12 @@ export default function ChatPage() {
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Type a message"
             />
-            <button className="chat-page__send-btn" type="submit" disabled={!draft.trim() || sending}>
-              {sending ? 'Sending…' : 'Send'}
+            <button
+              className="chat-page__send-btn"
+              type="submit"
+              disabled={!draft.trim() || sending}
+            >
+              {sending ? "Sending…" : "Send"}
             </button>
           </form>
         </>

@@ -1,4 +1,4 @@
-import { SearchIcon, FilterIcon } from "@/assets/icons";
+import { SearchIcon, FilterIcon, MicIcon } from "@/assets/icons";
 import "./SearchBar.css";
 
 export default function SearchBar({
@@ -6,6 +6,7 @@ export default function SearchBar({
   onChange,
   placeholder = "Search",
   onFilterClick,
+  showMic = true,
 }) {
   return (
     <div className="search-bar">
@@ -18,6 +19,7 @@ export default function SearchBar({
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
         />
+        {showMic && <MicIcon className="search-bar__icon" />}
       </div>
       {onFilterClick && (
         <button

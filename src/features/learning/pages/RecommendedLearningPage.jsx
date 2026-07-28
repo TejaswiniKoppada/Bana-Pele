@@ -1,10 +1,113 @@
-import ComingSoon from '@/components/common/ComingSoon/ComingSoon';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppState } from "@/app/providers/AppStateProvider";
+import {
+  acceptRecommendation,
+  getRecommendationsByStatus,
+} from "@/services/learningService";
+
+/** Real recommendations for the current user (Supabase — see learningService.js). */
+function useRecommendations(menteeId, statuses) {
+  const [items, setItems] = useState(null);
+  const [error, setError] = useState("");
+  const [reloadToken, setReloadToken] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    getRecommendationsByStatus(menteeId, statuses)
+      .then((data) => {
+        if (!cancelled) setItems(data);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err.message || "Could not load learning recommendations.");
+        setItems([]); // stop showing "Loading…" forever — the error message above takes over
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menteeId, reloadToken]);
+
+  return { items, error, reload: () => setReloadToken((t) => t + 1) };
+}
 
 export default function RecommendedLearningPage() {
+  const { state } = useAppState();
+  const menteeId = state.currentUser.id;
+  const navigate = useNavigate();
+  const pending = useRecommendations(menteeId, ["pending"]);
+  const accepted = useRecommendations(menteeId, ["accepted"]);
+  const [acceptingId, setAcceptingId] = useState(null);
+
+  async function handleAccept(item) {
+    setAcceptingId(item.id);
+    try {
+      await acceptRecommendation(item.id);
+      pending.reload();
+      accepted.reload();
+    } finally {
+      setAcceptingId(null);
+    }
+  }
+
+  const loading = pending.items === null || accepted.items === null;
+
   return (
-    <ComingSoon
-      title="Recommended learning is coming soon"
-      description="Learning resources your peers share with you will show up here."
-    />
+    <div>
+      {pending.error && <p className="page-status">{pending.error}</p>}
+
+      {!loading && pending.items.length > 0 && (
+        <div className="learning-pending">
+          <p className="learning-pending__title">Pending</p>
+          {pending.items.map((item) => (
+            <div key={item.id} className="card learning-pending__item">
+              <div className="learning-pending__info">
+                <p className="learning-pending__item-title">{item.title}</p>
+                <p className="learning-pending__item-by">
+                  By {item.mentorName}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={acceptingId === item.id}
+                onClick={() => handleAccept(item)}
+              >
+                {acceptingId === item.id ? "Accepting…" : "Accept"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {loading && <p className="page-status">Loading recommendations…</p>}
+      {!loading && accepted.error && (
+        <p className="page-status">{accepted.error}</p>
+      )}
+      {!loading && !accepted.error && accepted.items.length === 0 && (
+        <p className="page-status">
+          No recommended learning yet — check back soon.
+        </p>
+      )}
+
+      <div className="learning-card-list">
+        {!loading &&
+          accepted.items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="card learning-card"
+              onClick={() =>
+                navigate(`/my-learning/item/${item.id}`, { state: { item } })
+              }
+            >
+              <p className="learning-card__title">{item.title}</p>
+              <p className="learning-card__category">{item.skillCategory}</p>
+              <p className="learning-card__by">By {item.mentorName}</p>
+            </button>
+          ))}
+      </div>
+    </div>
   );
 }

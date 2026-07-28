@@ -1,3 +1,125 @@
 .my-learning-page {
   padding-bottom: var(--space-lg);
 }
+
+/* Visually distinct from the Recommended list below it — pending items
+   still need an Accept action before they're really "recommended". */
+.learning-pending {
+  margin: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.learning-pending__title {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-dark);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-sm);
+}
+
+.learning-pending__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin: 0 0 var(--space-sm);
+}
+
+.learning-pending__item:last-child {
+  margin-bottom: 0;
+}
+
+.learning-pending__info {
+  min-width: 0;
+}
+
+.learning-pending__item-title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.learning-pending__item-by {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.learning-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin: 0 var(--space-md);
+}
+
+.learning-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+}
+
+.learning-card__title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.learning-card__category {
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.learning-card__by {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.learning-card .btn-secondary {
+  margin-top: var(--space-sm);
+}
+
+.learning-card__completed-badge {
+  margin-top: var(--space-sm);
+  display: inline-block;
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-pill);
+}
+
+.learning-detail-page {
+  padding-bottom: var(--space-lg);
+}
+
+.learning-detail {
+  margin: 0 var(--space-md);
+}
+
+.learning-detail__title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.learning-detail__by {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.learning-detail__field {
+  margin-bottom: var(--space-md);
+}
+
+.learning-detail .btn-primary {
+  margin-top: var(--space-sm);
+}

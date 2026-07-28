@@ -1,23 +1,26 @@
-import { useState } from 'react';
-import { FilterIcon } from '@/assets/icons';
-import './FilterBar.css';
+import { useState } from "react";
+import { FilterIcon } from "@/assets/icons";
+import "./FilterBar.css";
 
-// Real values confirmed in ARCHITECTURE_UPDATE_POST_CALL.md (Section 2) —
-// Elevate hasn't made these fields/filters live yet, so every field here is
-// disabled rather than wired to fabricated filtering logic. Once Elevate
-// exposes the underlying data, re-enable the corresponding field and wire
-// its onChange back into search.
-const NOT_YET_AVAILABLE = 'Not yet available — coming soon';
+// ELP Type/Tier still have no real field/filter from Elevate — stay disabled.
+// Distance is now real: see hooks/useGeocoding.js + services/geocodingService.js.
+const NOT_YET_AVAILABLE = "Not yet available — coming soon";
 
-const DISTANCE_OPTIONS = ['5 km', '10 km', '20 km', '50 km', '100 km'];
-const ELP_TYPE_OPTIONS = ['Centre-based', 'Non-Centre-based'];
-const ELP_TIER_OPTIONS = ['Pre-Bronze', 'Bronze', 'Silver', 'Gold'];
+const DISTANCE_OPTIONS = [5, 10, 20, 50, 100];
+const ELP_TYPE_OPTIONS = ["Centre-based", "Non-Centre-based"];
+const ELP_TIER_OPTIONS = ["Pre-Bronze", "Bronze", "Silver", "Gold"];
 
-function DisabledFilterField({ label, placeholder, options }) {
+function DisabledFilterField({ label, placeholder, options, reason }) {
   return (
-    <label className="filter-bar__field filter-bar__field--disabled" title={NOT_YET_AVAILABLE}>
+    <label
+      className="filter-bar__field filter-bar__field--disabled"
+      title={reason || NOT_YET_AVAILABLE}
+    >
       <span>
-        {label} <em className="filter-bar__field-note">(coming soon)</em>
+        {label}{" "}
+        <em className="filter-bar__field-note">
+          {reason ? "(unavailable)" : "(coming soon)"}
+        </em>
       </span>
       <select disabled defaultValue="">
         <option value="" disabled>
@@ -33,7 +36,11 @@ function DisabledFilterField({ label, placeholder, options }) {
   );
 }
 
-export default function FilterBar() {
+export default function FilterBar({
+  distanceKm,
+  onDistanceChange,
+  distanceUnavailableReason,
+}) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -49,9 +56,43 @@ export default function FilterBar() {
       </button>
       {expanded && (
         <div className="filter-bar__row">
-          <DisabledFilterField label="Distance" placeholder="Select radius" options={DISTANCE_OPTIONS} />
-          <DisabledFilterField label="ELP Type" placeholder="Select type" options={ELP_TYPE_OPTIONS} />
-          <DisabledFilterField label="ELP Tier" placeholder="Select tier" options={ELP_TIER_OPTIONS} />
+          {distanceUnavailableReason ? (
+            <DisabledFilterField
+              label="Distance"
+              placeholder="Select radius"
+              options={DISTANCE_OPTIONS.map((km) => `${km} km`)}
+              reason={distanceUnavailableReason}
+            />
+          ) : (
+            <label className="filter-bar__field">
+              <span>Distance</span>
+              <select
+                value={distanceKm ?? ""}
+                onChange={(e) =>
+                  onDistanceChange(
+                    e.target.value ? Number(e.target.value) : null,
+                  )
+                }
+              >
+                <option value="">Any distance</option>
+                {DISTANCE_OPTIONS.map((km) => (
+                  <option key={km} value={km}>
+                    {km} km
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <DisabledFilterField
+            label="ELP Type"
+            placeholder="Select type"
+            options={ELP_TYPE_OPTIONS}
+          />
+          <DisabledFilterField
+            label="ELP Tier"
+            placeholder="Select tier"
+            options={ELP_TIER_OPTIONS}
+          />
         </div>
       )}
     </div>
