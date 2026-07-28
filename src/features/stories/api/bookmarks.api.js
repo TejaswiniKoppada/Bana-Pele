@@ -12,21 +12,29 @@
 import { supabase } from '@/lib/supabase/client.js';
 import { mapContentItem } from './contentItems.api.js';
 
+export const BOOKMARKED_PAGE_SIZE = 6;
+
 export async function getBookmarkedContentItemIds(userId) {
   const { data, error } = await supabase.from('bookmarks').select('content_item_id').eq('user_id', String(userId));
   if (error) throw error;
   return new Set((data ?? []).map((row) => row.content_item_id));
 }
 
-export async function getBookmarkedContentItems(userId) {
-  const { data, error } = await supabase
+/** One page of this user's bookmarked content_items (page is 1-based), newest bookmark first. */
+export async function getBookmarkedContentItems(userId, { page = 1, pageSize = BOOKMARKED_PAGE_SIZE } = {}) {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
     .from('bookmarks')
-    .select('content_item_id, content_items(id, title, video_id, published_at)')
+    .select('content_item_id, content_items(id, title, video_id, published_at)', { count: 'exact' })
     .eq('user_id', String(userId))
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) throw error;
-  return (data ?? []).filter((row) => row.content_items).map((row) => mapContentItem(row.content_items));
+  const items = (data ?? []).filter((row) => row.content_items).map((row) => mapContentItem(row.content_items));
+  return { items, totalCount: count ?? 0 };
 }
 
 export async function addBookmark(userId, contentItemId) {
