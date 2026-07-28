@@ -41,17 +41,24 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          # Vite bakes VITE_* vars in at build time, not read at runtime —
-          # unset, these fall back to relative/dev-only defaults (see
-          # src/config/env.js) that only resolve correctly behind the Vite
-          # dev server's proxy. A static GitHub Pages build has no proxy, so
-          # the real absolute API host must be supplied here instead.
-          VITE_API_BASE_URL: https://elevate-apis.shikshalokam.org
-          # Community Voices' Supabase calls need these too — add the real
-          # values (same ones in your local .env.local) as repo secrets:
-          # Settings → Secrets and variables → Actions → New repository secret.
+          # Vite bakes VITE_* vars in at build time, not read at runtime.
+          #
+          # VITE_API_BASE_URL is deliberately NOT set here — src/config/env.js
+          # auto-derives it from VITE_SUPABASE_URL in production builds,
+          # pointing Elevate Mentoring calls at the elevate-proxy Supabase
+          # Edge Function (see supabase/functions/elevate-proxy) instead of
+          # Elevate directly, which fails with "Tenant domain not found" from
+          # a static host (Elevate requires an Origin header browsers never
+          # let JS set). Deploy that function once via
+          # `supabase functions deploy elevate-proxy`; no separate secret
+          # needed for it.
+          #
+          # These three DO need real values — add them as repo secrets:
+          # Settings → Secrets and variables → Actions → New repository
+          # secret (same values as your local .env.local).
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_ADMIN_REVIEW_PASSWORD: ${{ secrets.VITE_ADMIN_REVIEW_PASSWORD }}
 
       # GitHub Pages has no server-side rewrite for client-side routes — a
       # direct visit or refresh on e.g. /Bana-Pele/peer-connect would 404
