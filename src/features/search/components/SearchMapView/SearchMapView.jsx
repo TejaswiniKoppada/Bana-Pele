@@ -1,96 +1,411 @@
-import { PeopleIcon, BuildingIcon } from '@/assets/icons';
+import { useEffect, useRef } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { PeopleIcon, PersonIcon, BuildingIcon, GraduationCapIcon } from '@/assets/icons';
 import './SearchMapView.css';
 
+const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+const DEFAULT_CENTER = [0, 0];
+const DEFAULT_ZOOM = 2;
+
+// Widen the locked view to a comfortable ~150km-wide area around the
+// cluster, rather than sizing tightly to just the 6 real points (which felt
+// cramped) — a fixed real-world buffer, not pixel padding, so the result is
+// consistent regardless of container size/aspect ratio.
+const TARGET_VIEW_SPAN_KM = 150;
+const KM_PER_DEGREE_LAT = 111;
+
+// ============================================================================
+// DEMO SCOPING (TEMPORARY) — NOT a permanent architectural decision.
+// Elevate's real `image` field is unused/empty for every account (confirmed
+// live) — Thandi's own map marker uses a real photo for the demo, matched by
+// her user id, while the other 5 connections stay icon-based markers. Same
+// /images/thandi.jpg asset Home.jsx's own TEMP_DEMO_OVERRIDES already
+// references for her profile card. Delete THANDI_USER_ID/THANDI_PHOTO_PATH
+// and the youPhotoDivIconHtml branch below once a real Elevate `image` value
+// exists for accounts that need one.
+// ============================================================================
+const THANDI_USER_ID = '1490';
+const THANDI_PHOTO_PATH = '/images/thandi.jpg';
+
+// variant -> { icon, className } — Practitioner and Expert each need both a
+// distinct icon AND color (not color alone), so they still read apart under
+// color-vision differences. Icon shapes per the attached design reference —
+// Practitioner uses PersonIcon (single-person bust, matching the reference)
+// rather than PeopleIcon (a two-person cluster, used elsewhere as a generic
+// fallback); colors are set in search-map.css, unchanged from before.
+const PIN_VARIANTS = {
+  you: { Icon: PeopleIcon, className: 'search-map__pin-icon--you', size: 40 },
+  practitioner: { Icon: PersonIcon, className: 'search-map__pin-icon--practitioner', size: 32 },
+  expert: { Icon: GraduationCapIcon, className: 'search-map__pin-icon--expert', size: 32 },
+  // Fallback for any category outside today's curated demo set (e.g. a
+  // future non-demo "communities-hubs"/"local-councils" account).
+  building: { Icon: BuildingIcon, className: 'search-map__pin-icon--building', size: 32 },
+  default: { Icon: PeopleIcon, className: '', size: 32 },
+};
+
+function pinDivIcon(variant) {
+  const { Icon, className, size } = PIN_VARIANTS[variant] || PIN_VARIANTS.default;
+  const html = renderToStaticMarkup(
+    <div className={`search-map__pin-icon${className ? ` ${className}` : ''}`}>
+      <Icon />
+    </div>
+  );
+  return L.divIcon({
+    html,
+    className: 'search-map__pin-icon-wrapper',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+  });
+}
+
 /**
- * Stylized, non-interactive map — a custom graphic, not a real map library
- * or real tile/GPS data. Currently unreachable (disabled from SearchPage):
- * pin placement needs real coordinates that don't exist yet — Elevate's
- * confirmed Location field is free text, not geocoded. Category counts come
- * from features/search/constants/mentorCategories.js, an approximation of
- * real designation data.
+ * Plain HTML string (not JSX/renderToStaticMarkup) so the inline onerror
+ * fallback attribute survives — Leaflet's divIcon html isn't mounted by
+ * React, so a JSX onError handler prop would never actually get wired up.
+ *
+ * Deliberately a plain circle — no teardrop pin shape, no icon overlaid or
+ * alongside it. The other 5 markers keep the teardrop pin + category icon
+ * treatment; Thandi's own marker is just her photo, per the Figma reference.
+ * If the photo 404s, the surrounding circle's own background color (set in
+ * CSS) is the only fallback — no icon substitute, since the point is "photo
+ * only."
  */
-export default function SearchMapView({ results, currentUserName, currentUserLocation }) {
+function youPhotoDivIconHtml() {
+  return (
+    `<div class="search-map__you-photo">` +
+    `<img src="${THANDI_PHOTO_PATH}" alt="" class="search-map__you-photo-img" onerror="this.style.display='none'" />` +
+    `</div>`
+  );
+}
+
+function youDivIcon(currentUserId) {
+  if (String(currentUserId) === THANDI_USER_ID) {
+    return L.divIcon({
+      html: youPhotoDivIconHtml(),
+      className: 'search-map__pin-icon-wrapper',
+      iconSize: [44, 44],
+      iconAnchor: [22, 44],
+    });
+  }
+  return pinDivIcon('you');
+}
+
+function variantForResult(r) {
+  if (r.category === 'practitioners') return 'practitioner';
+  if (r.category === 'experts') return 'expert';
+  if (r.category === 'local-councils') return 'building';
+  return 'default';
+}
+
+/** Name only — no location text, per the attached reference's compact label style. */
+function tooltipHtml(name, isYou) {
+  return `<strong>${isYou ? `${name} (you)` : name}</strong>`;
+}
+
+/** Extends a LatLngBounds to at least TARGET_VIEW_SPAN_KM wide/tall, centered
+ * on its own center — union'd with the original so real points are never
+ * excluded even if they'd otherwise fall outside the symmetric target box. */
+function widenBounds(points) {
+  const bounds = L.latLngBounds(points);
+  const center = bounds.getCenter();
+  const halfSpanKm = TARGET_VIEW_SPAN_KM / 2;
+  const deltaLat = halfSpanKm / KM_PER_DEGREE_LAT;
+  const kmPerDegreeLon = KM_PER_DEGREE_LAT * Math.cos((center.lat * Math.PI) / 180);
+  const deltaLon = halfSpanKm / kmPerDegreeLon;
+  const widened = L.latLngBounds(
+    [center.lat - deltaLat, center.lng - deltaLon],
+    [center.lat + deltaLat, center.lng + deltaLon]
+  );
+  return widened.extend(bounds);
+}
+
+// Approximate on-screen label size used only for collision detection below —
+// doesn't need to be pixel-exact, just conservative enough to catch real
+// overlaps between the permanent tooltip bubbles. Smaller than before now
+// that labels are name-only, single-line (no more location text/line-wrap).
+const LABEL_WIDTH_PX = 120;
+const LABEL_HEIGHT_PX = 22;
+const LABEL_GAP_PX = 4;
+
+/**
+ * Resolves a collision-free vertical offset for each entry's tooltip, given
+ * the map's CURRENT (already-fixed) view — entries whose base position would
+ * overlap an already-placed label get moved to the next candidate in a
+ * bidirectional search (further above, then further below, alternating,
+ * both checked against the canvas edges too) instead. Needed because the
+ * reshuffled demo locations put up to 4 people within ~15km of each other
+ * (Thandi and Maria now share exact coordinates) — more overlap pressure
+ * than fits by only ever stacking upward, confirmed live (that produced
+ * labels clipped above the visible canvas). Zero overlap is never
+ * sacrificed even if a candidate has to fall outside the canvas as a last
+ * resort — `entries` should be ordered by priority (most important first);
+ * earlier entries get first claim on their preferred position.
+ */
+function resolveTooltipOffsets(map, entries) {
+  const mapSize = map.getSize();
+  const edgeMargin = 4;
+  const step = LABEL_HEIGHT_PX + LABEL_GAP_PX;
+  const placed = [];
+
+  function boxAt(point, offsetY) {
+    const centerY = point.y + offsetY;
+    return { topY: centerY - LABEL_HEIGHT_PX / 2, bottomY: centerY + LABEL_HEIGHT_PX / 2 };
+  }
+  function withinCanvas(box) {
+    return box.topY >= edgeMargin && box.bottomY <= mapSize.y - edgeMargin;
+  }
+  function collidesWithPlaced(x, box) {
+    return placed.some(
+      (p) => Math.abs(p.x - x) < LABEL_WIDTH_PX && !(box.bottomY < p.topY - LABEL_GAP_PX || box.topY > p.bottomY + LABEL_GAP_PX)
+    );
+  }
+
+  return entries.map(({ latlng, baseOffsetY }) => {
+    const point = map.latLngToContainerPoint(latlng);
+
+    const candidateOffsets = [baseOffsetY];
+    for (let i = 1; i <= 8; i++) {
+      candidateOffsets.push(baseOffsetY - i * step); // further above the marker
+      candidateOffsets.push(baseOffsetY + i * step); // toward/below the marker
+    }
+
+    // Pass 1: require both collision-free AND inside the visible canvas.
+    let chosen = candidateOffsets
+      .map((offsetY) => ({ offsetY, box: boxAt(point, offsetY) }))
+      .find((c) => withinCanvas(c.box) && !collidesWithPlaced(point.x, c.box));
+
+    // Pass 2 (fallback): collision-free is non-negotiable, but allow
+    // spilling past the canvas edge if every in-bounds slot is taken.
+    if (!chosen) {
+      chosen = candidateOffsets
+        .map((offsetY) => ({ offsetY, box: boxAt(point, offsetY) }))
+        .find((c) => !collidesWithPlaced(point.x, c.box));
+    }
+
+    if (!chosen) chosen = { offsetY: baseOffsetY, box: boxAt(point, baseOffsetY) };
+
+    placed.push({ x: point.x, topY: chosen.box.topY, bottomY: chosen.box.bottomY });
+    return chosen.offsetY;
+  });
+}
+
+/**
+ * Real interactive map — Leaflet + OpenStreetMap tiles (no API key), not a
+ * decorative canvas. Pins use real geocoded coordinates (see
+ * hooks/useGeocoding.js + services/geocodingService.js). Tapping a
+ * practitioner's pin opens their full profile page (same as tapping a
+ * result used to elsewhere) rather than an inline card.
+ *
+ * The view (center/zoom) is fit ONCE, the first time real coordinates are
+ * available, then locked for the lifetime of this mount — it deliberately
+ * never re-fits on later renders (filter changes, tapping a pin, etc.) so
+ * the map holds still during a live demo. Since it's fit from real,
+ * deterministic geocoded data, remounting (e.g. navigating back from a
+ * profile page) reproduces the same view rather than needing to persist
+ * any state across the navigation.
+ */
+export default function SearchMapView({
+  results,
+  currentUserName,
+  currentUserId,
+  ownCoords,
+  onOpenProfile,
+}) {
+  const mapElRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const viewLockedRef = useRef(false);
+
   const counts = results.reduce(
     (acc, r) => {
       if (r.category === 'practitioners') acc.practitioners += 1;
+      else if (r.category === 'experts') acc.experts += 1;
       else if (r.category === 'local-councils') acc.localCouncils += 1;
       else acc.communitiesHubs += 1;
       return acc;
     },
-    { practitioners: 0, communitiesHubs: 0, localCouncils: 0 }
+    { practitioners: 0, experts: 0, communitiesHubs: 0, localCouncils: 0 }
   );
+  // Built from whichever categories actually have someone in them, so the
+  // text never hardcodes all four buckets (the previous fixed 3-part comma
+  // list is what produced a run-on/truncated line for this curated set,
+  // which today is only ever practitioners + experts).
+  const summaryParts = [
+    { count: counts.practitioners, label: counts.practitioners === 1 ? 'Practitioner' : 'Practitioners' },
+    { count: counts.experts, label: counts.experts === 1 ? 'Expert' : 'Experts' },
+    { count: counts.communitiesHubs, label: 'Communities/Hubs' },
+    {
+      count: counts.localCouncils,
+      label: counts.localCouncils === 1 ? 'Local Council' : 'Local Councils',
+    },
+  ].filter((part) => part.count > 0);
+
+  const plottable = results.filter((r) => r.lat != null && r.lon != null);
+
+  // Create the map instance once; tear it down on unmount. React 18
+  // StrictMode double-invokes this in dev (mount, cleanup, mount again) —
+  // the lock must reset in the cleanup alongside the map instance itself,
+  // otherwise the real, surviving map from the second mount never gets its
+  // view fit (confirmed live: markers landed at the right coordinates, but
+  // the map stayed at the [0,0] default because the stale lock from the
+  // first, discarded instance blocked fitBounds on the second).
+  //
+  // Fully static display: the fixed bounds computed below are the only view
+  // this map ever shows — no zoom control, no scroll/drag/double-click/box/
+  // touch zoom, no panning. Marker taps still work; only the map's own
+  // pan/zoom interactivity is disabled.
+  useEffect(() => {
+    if (mapRef.current || !mapElRef.current) return;
+    const map = L.map(mapElRef.current, {
+      zoomControl: false,
+      attributionControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      touchZoom: false,
+      dragging: false,
+      keyboard: false,
+    }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+    L.tileLayer(OSM_TILE_URL, { attribution: OSM_ATTRIBUTION, maxZoom: 19 }).addTo(map);
+    mapRef.current = map;
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      viewLockedRef.current = false;
+    };
+  }, []);
+
+  // Rebuild pins whenever the plottable set or own location changes.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+
+    const points = [];
+    // Collected here, tooltips bound afterward once the view is final (see
+    // below) — computing collision-free offsets needs the map already at
+    // its locked zoom/center, which fitBounds only guarantees once it runs.
+    const tooltipTargets = [];
+
+    plottable.forEach((r) => {
+      const marker = L.marker([r.lat, r.lon], { icon: pinDivIcon(variantForResult(r)) }).addTo(map);
+      marker.on('click', () => onOpenProfile?.(r));
+      markersRef.current.push(marker);
+      points.push([r.lat, r.lon]);
+      tooltipTargets.push({
+        marker,
+        latlng: [r.lat, r.lon],
+        baseOffsetY: -32,
+        html: tooltipHtml(r.name, false),
+        className: 'search-map__tooltip',
+      });
+    });
+
+    // Added last (and with a high zIndexOffset) so Thandi's own pin always
+    // paints above the others in the Sasolburg/Vereeniging/Vanderbijlpark
+    // sub-cluster — those 3 towns are only ~15km apart, close enough that
+    // their markers/tooltips would otherwise collide, and "you" is supposed
+    // to stay the most prominent marker regardless.
+    if (ownCoords) {
+      const youMarker = L.marker([ownCoords.lat, ownCoords.lon], {
+        icon: youDivIcon(currentUserId),
+        zIndexOffset: 1000,
+      }).addTo(map);
+      markersRef.current.push(youMarker);
+      points.push([ownCoords.lat, ownCoords.lon]);
+      // Unshifted to the front — "you" gets first claim on its preferred
+      // position in the collision resolution below, since it's the most
+      // important label to keep readable and close to its own pin.
+      tooltipTargets.unshift({
+        marker: youMarker,
+        latlng: [ownCoords.lat, ownCoords.lon],
+        baseOffsetY: -40,
+        html: tooltipHtml(currentUserName, true),
+        className: 'search-map__tooltip search-map__tooltip--you',
+      });
+    }
+
+    // Fixed view: fit once, the first time there's something to fit, then
+    // never touch the view again for the rest of this mount. invalidateSize
+    // first — the container's real pixel size isn't always settled yet at
+    // this point (e.g. right after the conditional block this component
+    // lives in first mounts), and fitBounds silently miscalculates the zoom
+    // if it trusts a stale/zero size, confirmed by reproducing it live.
+    // Bounds are widened to ~150km first (see widenBounds) so the fixed view
+    // has comfortable breathing room around the cluster rather than sizing
+    // tightly to just these 6 points; the pixel padding on top of that is
+    // only for tooltip clearance, not for overall breathing room anymore.
+    if (!viewLockedRef.current && points.length > 0) {
+      map.invalidateSize();
+      map.fitBounds(widenBounds(points), {
+        paddingTopLeft: [24, 50],
+        paddingBottomRight: [24, 24],
+      });
+      viewLockedRef.current = true;
+    }
+
+    // Bind tooltips now that the view is final — offsets are resolved
+    // against the map's actual current projection, so labels that would
+    // otherwise overlap (the tight sub-cluster) stack vertically instead.
+    if (tooltipTargets.length > 0) {
+      const offsets = resolveTooltipOffsets(
+        map,
+        tooltipTargets.map((t) => ({ latlng: t.latlng, baseOffsetY: t.baseOffsetY }))
+      );
+      tooltipTargets.forEach((t, i) => {
+        t.marker.bindTooltip(t.html, {
+          permanent: true,
+          direction: 'top',
+          offset: [0, offsets[i]],
+          className: t.className,
+        });
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plottable.map((r) => r.id).join(','), ownCoords?.lat, ownCoords?.lon, currentUserName, currentUserId]);
 
   return (
     <div className="search-map">
-      <div className="search-map__canvas">
-        {/* Static illustrated backdrop — same graphic for every search; only the pins above it change. */}
-        <svg
-          className="search-map__bg"
-          viewBox="0 0 400 300"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <rect x="0" y="0" width="400" height="300" fill="#eef1ec" />
-
-          {/* Parks / green space, kept clear of the central pin cluster */}
-          <ellipse cx="55" cy="48" rx="52" ry="36" fill="#bfe3c0" opacity="0.85" />
-          <ellipse cx="352" cy="252" rx="56" ry="40" fill="#bfe3c0" opacity="0.85" />
-          <ellipse cx="352" cy="50" rx="30" ry="24" fill="#bfe3c0" opacity="0.75" />
-
-          {/* Water body */}
-          <ellipse cx="42" cy="256" rx="42" ry="30" fill="#a8d0e6" opacity="0.85" />
-
-          {/* Building blocks — low-opacity texture, sits behind the pins */}
-          <rect x="18" y="112" width="18" height="14" rx="2" fill="#c7cad0" opacity="0.45" />
-          <rect x="66" y="196" width="14" height="18" rx="2" fill="#c7cad0" opacity="0.45" />
-          <rect x="108" y="38" width="16" height="12" rx="2" fill="#c7cad0" opacity="0.45" />
-          <rect x="176" y="252" width="20" height="14" rx="2" fill="#c7cad0" opacity="0.4" />
-          <rect x="228" y="26" width="14" height="20" rx="2" fill="#c7cad0" opacity="0.4" />
-          <rect x="298" y="168" width="18" height="14" rx="2" fill="#c7cad0" opacity="0.4" />
-          <rect x="338" y="118" width="16" height="22" rx="2" fill="#c7cad0" opacity="0.45" />
-          <rect x="150" y="272" width="22" height="12" rx="2" fill="#c7cad0" opacity="0.4" />
-          <rect x="86" y="16" width="14" height="16" rx="2" fill="#c7cad0" opacity="0.4" />
-          <rect x="368" y="198" width="12" height="18" rx="2" fill="#c7cad0" opacity="0.45" />
-
-          {/* Roads / streets — thin light lines suggesting a city grid, not geographically accurate */}
-          <g stroke="#ffffff" strokeLinecap="round" opacity="0.9">
-            <line x1="0" y1="64" x2="400" y2="92" strokeWidth="6" />
-            <line x1="0" y1="186" x2="400" y2="156" strokeWidth="6" />
-            <line x1="0" y1="248" x2="400" y2="266" strokeWidth="5" />
-            <line x1="64" y1="0" x2="34" y2="300" strokeWidth="5" />
-            <line x1="252" y1="0" x2="288" y2="300" strokeWidth="5" />
-            <line x1="152" y1="0" x2="152" y2="300" strokeWidth="4" opacity="0.7" />
-            <line x1="0" y1="122" x2="400" y2="122" strokeWidth="4" opacity="0.7" />
-          </g>
-        </svg>
-
-        <div className="search-map__pin search-map__pin--you" style={{ left: '50%', top: '50%' }}>
-          <div className="search-map__pin-icon search-map__pin-icon--you">
+      <div className="search-map__canvas" ref={mapElRef} />
+      <div className="search-map__legend">
+        <span className="search-map__legend-item">
+          <span className="search-map__legend-swatch search-map__legend-swatch--you">
             <PeopleIcon />
-          </div>
-          <span className="search-map__pin-label search-map__pin-label--you">
-            {currentUserName} (you){currentUserLocation ? ` · ${currentUserLocation}` : ''}
           </span>
-        </div>
-        {results.map((connection) => (
-          <div
-            key={connection.id}
-            className="search-map__pin"
-            style={{ left: `${connection.mapX ?? 50}%`, top: `${connection.mapY ?? 50}%` }}
-          >
-            <div className="search-map__pin-icon">
-              {connection.category === 'local-councils' ? <BuildingIcon /> : <PeopleIcon />}
-            </div>
-            <span className="search-map__pin-label">
-              {connection.name}
-              {connection.location ? ` · ${connection.location}` : ''}
-            </span>
-          </div>
-        ))}
+          You
+        </span>
+        <span className="search-map__legend-item">
+          <span className="search-map__legend-swatch search-map__legend-swatch--practitioner">
+            <PersonIcon />
+          </span>
+          Practitioner
+        </span>
+        <span className="search-map__legend-item">
+          <span className="search-map__legend-swatch search-map__legend-swatch--expert">
+            <GraduationCapIcon />
+          </span>
+          Expert
+        </span>
       </div>
       <p className="search-map__summary">
-        Found: <strong>{counts.practitioners}</strong> Practitioners, <strong>{counts.communitiesHubs}</strong>{' '}
-        Communities/Hubs, <strong>{counts.localCouncils}</strong> Local Councils
+        {summaryParts.length > 0 ? (
+          <>
+            Found:{' '}
+            {summaryParts.map((part, i) => (
+              <span key={part.label}>
+                {i > 0 && ' and '}
+                <strong>{part.count}</strong> {part.label}
+              </span>
+            ))}
+          </>
+        ) : (
+          'No practitioners found.'
+        )}
       </p>
     </div>
   );

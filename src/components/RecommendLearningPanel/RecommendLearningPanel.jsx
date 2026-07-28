@@ -1,0 +1,127 @@
+import { useState } from "react";
+import { ChevronRightIcon } from "@/assets/icons";
+import { LEARNING_CATALOG } from "@/services/learningCatalog";
+import { createRecommendations } from "@/services/learningService";
+import { sendChatMessage } from "@/features/chat/api/chat.api";
+import "@/styles/recommend-learning-panel.css";
+
+const NOTIFY_MESSAGE =
+  "I've recommended some learning materials for you! Open My Learning to view and accept them.";
+
+/**
+ * Mentor -> mentee only (gated by the caller: hidden on your own profile and
+ * on anyone not yet an accepted connection). Lets a mentor pick from the
+ * fixed 5-item curated catalog and send real recommendations to a real
+ * connection — real database rows (learning_recommendations), then exactly
+ * one real chat message via the already-working chat integration (never one
+ * message per item, regardless of how many materials were selected).
+ */
+export default function RecommendLearningPanel({ mentor, mentee }) {
+  const [expanded, setExpanded] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [sendState, setSendState] = useState("idle"); // 'idle' | 'sending' | 'sent' | 'error'
+  const [sendError, setSendError] = useState("");
+
+  function toggleItem(id) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleSend() {
+    const items = LEARNING_CATALOG.filter((item) => selectedIds.has(item.id));
+    if (items.length === 0) return;
+    setSendState("sending");
+    setSendError("");
+    try {
+      await createRecommendations({
+        mentorId: mentor.id,
+        mentorName: mentor.name,
+        menteeId: mentee.id,
+        menteeName: mentee.name,
+        items,
+      });
+      if (!mentee.roomId) {
+        throw new Error(
+          "Recommendations were saved, but the chat notification could not be sent (no chat room found for this connection yet).",
+        );
+      }
+      await sendChatMessage(mentee.roomId, NOTIFY_MESSAGE);
+      setSendState("sent");
+      setSelectedIds(new Set());
+    } catch (err) {
+      setSendState("error");
+      setSendError(
+        err.message || "Could not send the recommendation. Please try again.",
+      );
+    }
+  }
+
+  return (
+    <div className="card recommend-learning-panel">
+      <button
+        type="button"
+        className="recommend-learning-panel__header"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+      >
+        <span>Recommend Learning</span>
+        <ChevronRightIcon
+          style={{ transform: `rotate(${expanded ? -90 : 90}deg)` }}
+        />
+      </button>
+
+      {expanded && (
+        <div className="recommend-learning-panel__body">
+          {sendState === "sent" ? (
+            <p className="recommend-learning-panel__success">
+              Sent! {mentee.name} will see it in My Learning and got a chat
+              notification.
+            </p>
+          ) : (
+            <>
+              <p className="recommend-learning-panel__hint">
+                Select one or more materials to recommend to {mentee.name}.
+              </p>
+              <ul className="recommend-learning-panel__list">
+                {LEARNING_CATALOG.map((item) => (
+                  <li key={item.id} className="recommend-learning-panel__item">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleItem(item.id)}
+                      />
+                      <span className="recommend-learning-panel__item-text">
+                        <strong>{item.title}</strong>
+                        <span className="recommend-learning-panel__item-meta">
+                          {item.skillCategory} · {item.materialType}
+                        </span>
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+
+              {sendState === "error" && sendError && (
+                <p className="recommend-learning-panel__error">{sendError}</p>
+              )}
+
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={selectedIds.size === 0 || sendState === "sending"}
+                onClick={handleSend}
+              >
+                {sendState === "sending" ? "Sending…" : "Send"}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

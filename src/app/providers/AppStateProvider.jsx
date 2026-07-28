@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext, useReducer } from 'react';
-import * as authApi from '@/features/auth/api/auth.api';
+import { createContext, useCallback, useContext, useReducer } from "react";
+import * as authApi from "@/features/auth/api/auth.api";
 
 const AppStateContext = createContext(null);
 
@@ -12,10 +12,8 @@ const persistedUser = authApi.getCurrentUser();
 
 const initialState = {
   currentUser: {
-    name: 'Thandi',
-    role: 'Aspiring ELP Practitioner',
-    joinedOn: '2026-07-01',
-    tier: 'Pre-Bronze',
+    name: "Thandi",
+    joinedOn: "2026-07-01",
     ...persistedUser,
   },
   isAuthenticated: authApi.isAuthenticated(),
@@ -24,9 +22,13 @@ const initialState = {
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'SET_AUTH_USER':
-      return { ...state, currentUser: { ...state.currentUser, ...action.payload }, isAuthenticated: true };
-    case 'CLEAR_AUTH':
+    case "SET_AUTH_USER":
+      return {
+        ...state,
+        currentUser: { ...state.currentUser, ...action.payload },
+        isAuthenticated: true,
+      };
+    case "CLEAR_AUTH":
       return { ...state, isAuthenticated: false };
     default:
       return state;
@@ -38,13 +40,13 @@ export function AppStateProvider({ children }) {
 
   const login = useCallback(async (identifier, password) => {
     const user = await authApi.login(identifier, password);
-    dispatch({ type: 'SET_AUTH_USER', payload: user });
+    dispatch({ type: "SET_AUTH_USER", payload: user });
     return user;
   }, []);
 
   const logout = useCallback(() => {
     authApi.logout();
-    dispatch({ type: 'CLEAR_AUTH' });
+    dispatch({ type: "CLEAR_AUTH" });
   }, []);
 
   return (
@@ -56,6 +58,7 @@ export function AppStateProvider({ children }) {
 
 export function useAppState() {
   const context = useContext(AppStateContext);
-  if (!context) throw new Error('useAppState must be used within AppStateProvider');
+  if (!context)
+    throw new Error("useAppState must be used within AppStateProvider");
   return context;
 }

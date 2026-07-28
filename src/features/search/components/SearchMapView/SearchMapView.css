@@ -15,22 +15,11 @@
   box-shadow: var(--shadow-card);
 }
 
-.search-map__bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-.search-map__pin {
-  position: absolute;
-  z-index: 1;
-  transform: translate(-50%, -100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+/* Leaflet's default div-icon chrome (white box + border) isn't wanted —
+   our own pin markup below supplies all the visible styling. */
+.leaflet-div-icon {
+  background: transparent;
+  border: none;
 }
 
 .search-map__pin-icon {

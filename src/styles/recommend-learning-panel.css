@@ -1,0 +1,73 @@
+.recommend-learning-panel {
+  padding: 0;
+}
+
+.recommend-learning-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-md);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
+  color: var(--color-primary);
+}
+
+.recommend-learning-panel__body {
+  padding: 0 var(--space-md) var(--space-md);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-md);
+}
+
+.recommend-learning-panel__hint {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.recommend-learning-panel__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.recommend-learning-panel__item label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.recommend-learning-panel__item input[type='checkbox'] {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.recommend-learning-panel__item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.recommend-learning-panel__item-meta {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.recommend-learning-panel__error {
+  color: var(--color-badge-dark);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.recommend-learning-panel__success {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}

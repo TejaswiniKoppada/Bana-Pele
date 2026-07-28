@@ -1,17 +1,18 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import HomePage from '@/features/home/pages/HomePage';
-import MyConnectionsPage from '@/features/connections/pages/MyConnectionsPage';
-import SearchPage from '@/features/search/pages/SearchPage';
-import PeerConnectPage from '@/features/connections/pages/PeerConnectPage';
-import ProfilePage from '@/features/profile/pages/ProfilePage';
-import ChatPage from '@/features/chat/pages/ChatPage';
-import RecommendedStoriesPage from '@/features/stories/pages/RecommendedStoriesPage';
-import BookmarkedStoriesPage from '@/features/stories/pages/BookmarkedStoriesPage';
-import MyStoriesPage from '@/features/stories/pages/MyStoriesPage';
-import CommunityVoicesPage from '@/features/stories/pages/CommunityVoicesPage';
-import MyLearningPage from '@/features/learning/pages/MyLearningPage';
-import RecommendedLearningPage from '@/features/learning/pages/RecommendedLearningPage';
-import InProgressPage from '@/features/learning/pages/InProgressPage';
+import { Navigate, Route, Routes } from "react-router-dom";
+import HomePage from "@/features/home/pages/HomePage";
+import MyConnectionsPage from "@/features/connections/pages/MyConnectionsPage";
+import SearchPage from "@/features/search/pages/SearchPage";
+import PeerConnectPage from "@/features/connections/pages/PeerConnectPage";
+import ProfilePage from "@/features/profile/pages/ProfilePage";
+import ChatPage from "@/features/chat/pages/ChatPage";
+import RecommendedStoriesPage from "@/features/stories/pages/RecommendedStoriesPage";
+import BookmarkedStoriesPage from "@/features/stories/pages/BookmarkedStoriesPage";
+import MyStoriesPage from "@/features/stories/pages/MyStoriesPage";
+import CommunityVoicesPage from "@/features/stories/pages/CommunityVoicesPage";
+import MyLearningPage from "@/features/learning/pages/MyLearningPage";
+import RecommendedLearningPage from "@/features/learning/pages/RecommendedLearningPage";
+import InProgressPage from "@/features/learning/pages/InProgressPage";
+import LearningItemDetail from "@/pages/my-learning/detail/LearningItemDetail";
 
 export default function AppRouter() {
   return (
@@ -35,6 +36,10 @@ export default function AppRouter() {
         <Route path="recommended" element={<RecommendedLearningPage />} />
         <Route path="in-progress" element={<InProgressPage />} />
       </Route>
+      <Route
+        path="/my-learning/item/:itemId"
+        element={<LearningItemDetail />}
+      />
     </Routes>
   );
 }

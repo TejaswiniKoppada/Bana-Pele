@@ -1,3 +1,9 @@
+/* See Chat.jsx's chat-page-open effect — this stops the outer page from
+   also scrolling, so only .chat-page__messages below has a scrollbar. */
+body.chat-page-open {
+  overflow: hidden;
+}
+
 .chat-page {
   display: flex;
   flex-direction: column;
@@ -73,7 +79,11 @@
 }
 
 .chat-bubble--mine {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
   border: none;
   border-bottom-left-radius: var(--radius-md);
   border-bottom-right-radius: 4px;
@@ -134,7 +144,11 @@
 .chat-page__send-btn {
   padding: var(--space-sm) var(--space-lg);
   border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
   color: var(--color-text-on-primary);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);

@@ -25,7 +25,11 @@
 .search-radar__ring {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, transparent 55%, var(--color-accent) 100%);
+  background: radial-gradient(
+    circle,
+    transparent 55%,
+    var(--color-accent) 100%
+  );
 }
 
 .search-radar__ring--3 {
@@ -65,6 +69,10 @@
   align-items: center;
 }
 
+.search-radar__avatar-wrap {
+  position: relative;
+}
+
 .search-radar__avatar {
   width: 64px;
   height: 64px;
@@ -77,6 +85,16 @@
   font-size: 22px;
   border: 3px solid var(--color-surface);
   box-shadow: var(--shadow-md);
+}
+
+.search-radar__badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: var(--color-surface);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  padding: 1px;
 }
 
 .search-radar__tag {

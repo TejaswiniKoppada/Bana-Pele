@@ -43,6 +43,14 @@
   color: var(--color-text-muted);
 }
 
+/* The pill-shaped .search-bar__field already shows a focus ring via
+   :focus-within above — without this, the input's own global
+   input:focus-visible ring (reset.css) also fires, drawing a second,
+   tighter-radius ring nested inside the pill's. */
+.search-bar__input:focus-visible {
+  box-shadow: none;
+}
+
 /* Overrides reset.css's global `input:focus-visible` ring — that rule is
    right for standalone inputs, but here it drew a second, tighter ring
    inside the pill on top of .search-bar__field's own shadow. */

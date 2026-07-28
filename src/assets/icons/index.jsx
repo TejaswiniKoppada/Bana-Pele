@@ -400,7 +400,17 @@ export function PersonCheckIcon(props) {
   );
 }
 
-/** Generic people/community pin icon — used for Practitioners and Communities/Hubs map pins. Solid/filled so it stays legible at small pin size. */
+/** Single-person bust/silhouette — map marker icon for the Practitioner category, matching the attached reference's single-person style (as opposed to PeopleIcon's two-person cluster). */
+export function PersonIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
+      <circle cx="12" cy="8" r="4" fill="currentColor" />
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Generic people/community pin icon — used for Communities/Hubs map pins. Solid/filled so it stays legible at small pin size. */
 export function PeopleIcon(props) {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
@@ -524,6 +534,28 @@ export function TikTokIcon(props) {
       <path
         d="M14.5 4c.35 1.5 1.48 2.96 3.5 3.2v2.2c-1.28-.02-2.5-.4-3.5-1.1v5.2a4.5 4.5 0 1 1-4.5-4.5c.3 0 .6.03.88.1v2.35a2.2 2.2 0 1 0 1.42 2.05V4h2.2Z"
         fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+/** Graduation cap pin icon — used for the Expert category on map pins. Solid silhouette to match PersonIcon/BuildingIcon's style at small pin size. */
+export function GraduationCapIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
+      <path d="M12 4 2 9l10 5 10-5-10-5Z" fill="currentColor" />
+      <path
+        d="M6 11.5V16c0 1.66 2.69 3 6 3s6-1.34 6-3v-4.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M21 9v5.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
       />
     </svg>
   );
