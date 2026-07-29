@@ -157,18 +157,14 @@ export default function Profile() {
     setRequestState("sending");
     setRequestError("");
     try {
-      const response = await initiateConnection(
-        connection.id,
-        DEFAULT_CONNECT_MESSAGE,
-      );
-      if (response?.status === "REQUESTED") {
-        setRequestState("sent");
-      } else {
-        setRequestState("error");
-        setRequestError(
-          response?.message || "Could not send the request. Please try again.",
-        );
-      }
+      // initiateConnection only ever resolves once the backend has replied
+      // responseCode: "OK" — a non-"REQUESTED" status here (e.g. "You cannot
+      // send any more messages till your message request is accepted.")
+      // just means a request already exists, not a failure (see its own
+      // doc comment). A real failure throws below and is caught as an
+      // actual error, so any resolved call means a request is in flight.
+      await initiateConnection(connection.id, DEFAULT_CONNECT_MESSAGE);
+      setRequestState("sent");
     } catch (err) {
       setRequestState("error");
       setRequestError(err.message);

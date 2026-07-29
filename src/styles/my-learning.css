@@ -15,19 +15,29 @@
   .learning-card-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    align-items: start;
+    align-items: stretch;
   }
 }
 
 /* One card per Recommend Learning action (RecommendedLearningPage.jsx) — all
    materials a mentor sent together in one go, grouped by
    recommendation_group_id, with a single Start Learning button that moves
-   the whole group to In Progress at once. */
+   the whole group to In Progress at once. Cards in the same grid row don't
+   all carry the same amount of content (message length, material count),
+   so height:100% + the stretch above match every card in a row to the
+   tallest one, and the Start Learning button anchors to the bottom via
+   margin-top: auto instead of trailing right after whatever content
+   happens to be shortest.  */
 .learning-recommendation-group {
+  height: 100%;
   padding: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+}
+
+.learning-recommendation-group > .btn-primary {
+  margin-top: auto;
 }
 
 .learning-recommendation-group__message {
