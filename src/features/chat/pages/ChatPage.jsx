@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeftIcon } from "@/assets/icons";
-import { avatarColorForName, initialsForName } from "@/utils/formatters";
-import { getMyConnections } from "@/features/connections/api/connections.api";
+import { ChevronLeftIcon } from "../../../assets/icons";
+import { avatarColorForName, initialsForName } from "../../../utils/formatters";
+import { getMyConnections } from "../../connections/api/connections.api";
 import {
   getMyChatUserId,
   loadChatHistory,
@@ -22,11 +22,11 @@ function formatMessageTime(timestamp) {
 /**
  * Chat screen for a single connection's room. Uses connection_meta.room_id
  * (already present on connections fetched for My Connections) — see
- * features/chat/api/chat.api.js for the REST calls against the separate
- * Elevate chat backend. No WebSocket: while this screen is mounted it polls
+ * services/chatService.js for the REST calls against the separate Elevate
+ * chat backend. No WebSocket: while this screen is mounted it polls
  * loadHistory every few seconds to pick up messages from the other side.
  */
-export default function ChatPage() {
+export default function Chat() {
   const { connectionId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();

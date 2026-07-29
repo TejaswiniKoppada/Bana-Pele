@@ -134,8 +134,33 @@ export function InfoIcon(props) {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" {...props}>
       <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M12 11v5.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path
+        d="M12 11v5.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
       <circle cx="12" cy="8" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function LocationPinIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" {...props}>
+      <path
+        d="M12 21s7-7.58 7-12.5A7 7 0 0 0 5 8.5C5 13.42 12 21 12 21Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="8.5"
+        r="2.25"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
     </svg>
   );
 }
@@ -405,7 +430,10 @@ export function PersonIcon(props) {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
       <circle cx="12" cy="8" r="4" fill="currentColor" />
-      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" fill="currentColor" />
+      <path
+        d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"
+        fill="currentColor"
+      />
     </svg>
   );
 }
@@ -450,6 +478,20 @@ export function UploadIcon(props) {
         d="M12 15V4M8 8l4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
         stroke="currentColor"
         strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function CheckIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" {...props}>
+      <path
+        d="M5 12.5 10 17.5 19 7"
+        stroke="currentColor"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -539,28 +581,6 @@ export function TikTokIcon(props) {
   );
 }
 
-/** Graduation cap pin icon — used for the Expert category on map pins. Solid silhouette to match PersonIcon/BuildingIcon's style at small pin size. */
-export function GraduationCapIcon(props) {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
-      <path d="M12 4 2 9l10 5 10-5-10-5Z" fill="currentColor" />
-      <path
-        d="M6 11.5V16c0 1.66 2.69 3 6 3s6-1.34 6-3v-4.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M21 9v5.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 /** Institutional building pin icon — used for Local Council map pins. Solid silhouette with punched-out door/windows so it stays legible at small pin size. */
 export function BuildingIcon(props) {
   return (
@@ -572,6 +592,36 @@ export function BuildingIcon(props) {
         fill="currentColor"
       />
       <rect x="2" y="20" width="20" height="1.6" rx="0.8" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Practitioner marker — graduation cap, for the map's Practitioners category. */
+export function GraduationCapIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
+      <path d="M12 3 1.5 8l10.5 5 9-4.5V15.5h2V8L12 3Z" fill="currentColor" />
+      <path
+        d="M5.5 10.3V15c0 1.93 3.13 3.5 6.5 3.5s6.5-1.57 6.5-3.5v-4.7"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Expert marker — medical cross, for the map's Experts category (health/specialist professionals, not ELP practitioners). */
+export function MedicalIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
+      <path
+        d="M12 6v12M6 12h12"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

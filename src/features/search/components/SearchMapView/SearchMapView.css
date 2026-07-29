@@ -1,10 +1,25 @@
-/* Stylized custom graphic only — not a real map library or real tile/GPS
-   data. Currently unreachable — see SearchMapView.jsx. */
+/* Real Leaflet + OpenStreetMap map — see SearchMapView.jsx. Pin/tooltip
+   visuals below are layered on top of Leaflet's own DOM structure via the
+   classNames passed to L.divIcon/bindTooltip. */
 .search-map {
   margin: 0 var(--space-md) var(--space-md);
 }
 
 .search-map__canvas {
+  /* `position: relative` alone does NOT create a new stacking context — it
+     only does that combined with an explicit z-index (or `isolation`).
+     Leaflet's own internal panes/controls use z-index values up to 1000
+     (leaflet.css), which, without a stacking context boundary here, were
+     being compared directly against the app's own overlays (SideNav,
+     NotificationPanel, InstallPrompt — all z-index 30-40) in the SAME
+     (root) stacking context and winning, so the map rendered on top of
+     them instead of underneath — confirmed live: opening the side nav
+     while the map was on screen showed the map floating above the nav's
+     backdrop and panel. `isolation: isolate` contains all of Leaflet's
+     internal z-index values inside this element, which then itself
+     stacks as a normal, unelevated block in the page — same fix needed
+     for the map to never bleed through above the next page either. */
+  isolation: isolate;
   position: relative;
   width: 100%;
   height: 380px;
@@ -34,6 +49,7 @@
   justify-content: center;
   box-shadow: var(--shadow-sm);
   border: 2px solid var(--color-surface);
+  cursor: pointer;
 }
 
 .search-map__pin-icon svg {
@@ -42,32 +58,126 @@
   height: 20px;
 }
 
-.search-map__pin--you .search-map__pin-icon {
+.search-map__pin-icon--you {
   width: 40px;
   height: 40px;
   background: var(--color-accent);
+  cursor: default;
 }
 
-.search-map__pin--you .search-map__pin-icon svg {
+.search-map__pin-icon--you svg {
   width: 22px;
   height: 22px;
 }
 
-.search-map__pin-label {
+/* Thandi's real-photo marker (demo-scoped, see SearchMapView.jsx) — a plain
+   circle, deliberately NOT built on .search-map__pin-icon's teardrop shape:
+   the other 5 markers keep the pin-shape + category icon treatment, but
+   Thandi's own marker is photo-only, no pin shape, no icon, per the Figma
+   reference. */
+.search-map__you-photo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--color-surface);
+  cursor: default;
+}
+
+.search-map__you-photo-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Practitioner and Expert each get a distinct icon (set via the component)
+   AND a distinct color here, so the two read apart even without color
+   vision — Expert uses the fixed, theme-independent --color-info (blue)
+   rather than a role-themed token, since it needs to stay visually distinct
+   from Practitioner's --color-primary regardless of mentor/mentee theme. */
+.search-map__pin-icon--practitioner {
+  background: var(--color-primary);
+}
+
+.search-map__pin-icon--expert {
+  background: var(--color-info);
+}
+
+.search-map__pin-icon--building {
+  background: var(--color-text-secondary);
+}
+
+/* Permanent tooltips double as the always-visible name+location label
+   bubbles under each pin (matches the Figma reference). */
+.leaflet-tooltip.search-map__tooltip {
   background: rgba(255, 255, 255, 0.94);
   color: var(--color-text);
   font-size: 10.5px;
   font-weight: var(--font-weight-semibold);
   padding: 2px 7px;
   border-radius: var(--radius-sm);
-  white-space: nowrap;
+  border: none;
   box-shadow: var(--shadow-sm);
-  margin-top: 2px;
+  white-space: nowrap;
 }
 
-.search-map__pin-label--you {
+.leaflet-tooltip.search-map__tooltip--you {
   font-weight: var(--font-weight-bold);
   color: var(--color-accent-dark);
+}
+
+.leaflet-tooltip-top.search-map__tooltip::before {
+  border-top-color: rgba(255, 255, 255, 0.94);
+}
+
+/* Compact, unobtrusive — just enough to explain the 3 marker types at a
+   glance, not a large overlay competing with the map itself. */
+.search-map__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  padding: 0 var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.search-map__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-map__legend-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-primary);
+  flex-shrink: 0;
+}
+
+.search-map__legend-swatch svg {
+  width: 12px;
+  height: 12px;
+}
+
+.search-map__legend-swatch--you {
+  background: var(--color-accent);
+}
+
+.search-map__legend-swatch--practitioner {
+  background: var(--color-primary);
+}
+
+.search-map__legend-swatch--expert {
+  background: var(--color-info);
 }
 
 .search-map__summary {

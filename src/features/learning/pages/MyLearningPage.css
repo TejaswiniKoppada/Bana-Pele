@@ -1,125 +1,225 @@
-.my-learning-page {
-  padding-bottom: var(--space-lg);
+/* Learning card — used by every My Learning list (Pending, Recommended,
+   In Progress). See components/LearningCard/LearningCard.jsx. Thumbnail
+   treatment mirrors story-card's (cards.css) real-poster + centered play
+   badge pattern, scaled down for a list card rather than a full story. */
+.learning-card {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font: inherit;
+  color: inherit;
 }
 
-/* Visually distinct from the Recommended list below it — pending items
-   still need an Accept action before they're really "recommended". */
-.learning-pending {
-  margin: var(--space-md);
-  padding: var(--space-md);
+button.learning-card {
+  cursor: pointer;
+}
+
+/* Pending needs to read as "needs action" at a glance — an accent border
+   plus a tinted body, distinct from the calmer, plain-white Recommended/
+   In Progress cards (which already sit inside their own quieter section). */
+.learning-card--pending {
+  border-color: var(--color-accent);
+  border-width: 1.5px;
+}
+
+.learning-card--pending .learning-card__body {
   background: var(--color-accent-light);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-md);
 }
 
-.learning-pending__title {
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent-dark);
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  margin-bottom: var(--space-sm);
+/* Completed gets a clearly different, quieter treatment than in-progress:
+   a desaturated/dimmed thumbnail rather than the vivid poster still in
+   play, so the eye settles on active items first. */
+.learning-card--completed .learning-card__thumb-img {
+  filter: grayscale(55%);
+  opacity: 0.7;
 }
 
-.learning-pending__item {
+.learning-card--completed .learning-card__title,
+.learning-card--completed .learning-card__by {
+  color: var(--color-text-secondary);
+}
+
+.learning-card__thumb {
+  position: relative;
+  height: 150px;
+  overflow: hidden;
+  background: var(--color-surface-sunken);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  margin: 0 0 var(--space-sm);
+  justify-content: center;
 }
 
-.learning-pending__item:last-child {
-  margin-bottom: 0;
+.learning-card__thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.32) 100%);
+  pointer-events: none;
 }
 
-.learning-pending__info {
-  min-width: 0;
-}
-
-.learning-pending__item-title {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-}
-
-.learning-pending__item-by {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-}
-
-.learning-card-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  margin: 0 var(--space-md);
-}
-
-.learning-card {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: flex-start;
-  text-align: left;
+.learning-card__thumb-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.learning-card__play-badge {
+  position: relative;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-primary);
+  backdrop-filter: blur(2px);
+}
+
+.learning-card__play-badge svg {
+  width: 18px;
+  height: 18px;
+}
+
+.learning-card:hover .learning-card__play-badge {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.learning-card__type-badge {
+  position: absolute;
+  left: var(--space-sm);
+  bottom: var(--space-sm);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(20, 15, 33, 0.55);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 2px 8px 2px 6px;
+  border-radius: var(--radius-pill);
+}
+
+.learning-card__type-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.learning-card__status-badge {
+  position: absolute;
+  right: var(--space-sm);
+  top: var(--space-sm);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--color-accent);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.learning-card__status-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.learning-card__status-badge--complete {
+  background: var(--color-info);
+}
+
+.learning-card__body {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.learning-card__category {
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 2px;
 }
 
 .learning-card__title {
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   font-size: var(--font-size-base);
-}
-
-.learning-card__category {
-  color: var(--color-primary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
 }
 
 .learning-card__by {
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
-  margin-bottom: var(--space-sm);
 }
 
-.learning-card .btn-secondary {
+/* Simulated/illustrative progress (see learningService.js) — a real fill
+   bar + percentage, not just a status word, so "in progress" reads as
+   genuinely partial rather than a placeholder state. */
+.learning-card__progress {
+  width: 100%;
   margin-top: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.learning-card__progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.learning-card__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-primary) 100%);
+  border-radius: var(--radius-pill);
+  transition: width var(--transition-base);
+}
+
+.learning-card__progress-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-dark);
+}
+
+.learning-card__footer {
+  margin-top: var(--space-sm);
+  width: 100%;
+}
+
+.learning-card__footer .btn-secondary {
+  width: 100%;
 }
 
 .learning-card__completed-badge {
-  margin-top: var(--space-sm);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: var(--color-accent-light);
   color: var(--color-accent-dark);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  padding: 2px var(--space-sm);
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
-}
-
-.learning-detail-page {
-  padding-bottom: var(--space-lg);
-}
-
-.learning-detail {
-  margin: 0 var(--space-md);
-}
-
-.learning-detail__title {
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
-  color: var(--color-text);
-}
-
-.learning-detail__by {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--space-md);
-}
-
-.learning-detail__field {
-  margin-bottom: var(--space-md);
-}
-
-.learning-detail .btn-primary {
-  margin-top: var(--space-sm);
 }

@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import SearchBar from '@/components/reusable/SearchBar/SearchBar';
-import FilterBar from '../components/FilterBar/FilterBar';
-import SearchRadar from '../components/SearchRadar/SearchRadar';
-import SearchMapView from '../components/SearchMapView/SearchMapView';
-import { useConnectionSearch } from '@/features/connections/hooks/useConnections';
-import { useGeocodedLocations, useOwnGeocodedLocation } from '@/features/connections/hooks/useGeocoding';
-import { useAppState } from '@/app/providers/AppStateProvider';
-import { haversineDistanceKm } from '@/services/geocodingService';
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import SearchBar from "@/components/reusable/SearchBar/SearchBar";
+import FilterBar from "../components/FilterBar/FilterBar";
+import SearchRadar from "../components/SearchRadar/SearchRadar";
+import SearchMapView from "../components/SearchMapView/SearchMapView";
+import { useConnectionSearch } from "@/features/connections/hooks/useConnections";
+import {
+  useGeocodedLocations,
+  useOwnGeocodedLocation,
+} from "@/features/connections/hooks/useGeocoding";
+import { useAppState } from "@/app/providers/AppStateProvider";
+import { haversineDistanceKm } from "@/services/geocodingService";
 
 // Roughly how long the searching animation should feel — real work
 // (mentor/mentee fetch + own-location and per-result geocoding) is padded up
@@ -21,7 +24,7 @@ const MIN_LOADING_MS = 2500;
 export default function Search() {
   const { state } = useAppState();
   const { currentUser } = state;
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [searchToken, setSearchToken] = useState(0);
   const { results, searching } = useConnectionSearch(query, searchToken);
   const [distanceKm, setDistanceKm] = useState(null);
@@ -62,42 +65,64 @@ export default function Search() {
   }, [dataReady]);
 
   function handleOpenProfile(connection) {
-    navigate(`/peer-connect/profile/${connection.id}`, { state: { profile: connection } });
+    navigate(`/peer-connect/profile/${connection.id}`, {
+      state: { profile: connection },
+    });
   }
 
   const distanceUnavailableReason =
-    !own.loading && !own.locationText ? 'Set your own Location in your profile to use this filter' : null;
+    !own.loading && !own.locationText
+      ? "Set your own Location in your profile to use this filter"
+      : null;
 
   // Enrich with real coordinates/distance as they resolve — geocoding is
   // progressive, so this recomputes as coordsById fills in.
   const enrichedResults = (results || []).map((r) => {
     const coords = coordsById[r.id];
     const distance =
-      coords && own.coords ? haversineDistanceKm(own.coords.lat, own.coords.lon, coords.lat, coords.lon) : null;
+      coords && own.coords
+        ? haversineDistanceKm(
+            own.coords.lat,
+            own.coords.lon,
+            coords.lat,
+            coords.lon,
+          )
+        : null;
     return { ...r, lat: coords?.lat, lon: coords?.lon, distanceKm: distance };
   });
 
   const activeDistanceFilter = distanceKm && !distanceUnavailableReason;
   const visibleResults = activeDistanceFilter
-    ? enrichedResults.filter((r) => r.distanceKm != null && r.distanceKm <= distanceKm)
+    ? enrichedResults.filter(
+        (r) => r.distanceKm != null && r.distanceKm <= distanceKm,
+      )
     : enrichedResults;
   const mappableResults = visibleResults.filter((r) => r.lat != null);
 
   return (
     <div>
-      <SearchBar value={query} onChange={setQuery} placeholder="Search mentors" showMic={false} />
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        placeholder="Search mentors"
+        showMic={false}
+      />
       <FilterBar
         distanceKm={distanceKm}
         onDistanceChange={setDistanceKm}
         distanceUnavailableReason={distanceUnavailableReason}
       />
 
-      {(showLoading || !results) && <SearchRadar name={currentUser.name} location={own.locationText} />}
+      {(showLoading || !results) && (
+        <SearchRadar name={currentUser.name} location={own.locationText} />
+      )}
 
       {!showLoading && results && (
         <>
           {activeDistanceFilter && visibleResults.length === 0 && (
-            <p className="page-status">No practitioners found within {distanceKm} km.</p>
+            <p className="page-status">
+              No practitioners found within {distanceKm} km.
+            </p>
           )}
           <SearchMapView
             results={mappableResults}

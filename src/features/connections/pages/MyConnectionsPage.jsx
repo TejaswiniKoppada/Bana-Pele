@@ -4,7 +4,7 @@ import SearchBar from "@/components/reusable/SearchBar/SearchBar";
 import ConnectionCard from "@/components/common/ConnectionCard/ConnectionCard";
 import { useMyConnections } from "../hooks/useConnections";
 
-export default function MyConnectionsPage() {
+export default function MyConnections() {
   const { connections, loading } = useMyConnections();
   const [query, setQuery] = useState("");
   const navigate = useNavigate();

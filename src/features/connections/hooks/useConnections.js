@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getMyConnections, searchConnections, searchMentorsByName } from "@/features/connections/api/connections.api";
+import {
+  getMyConnections,
+  searchConnections,
+  searchMentorsByName,
+} from "../api/connections.api";
 import { categoryForPerson } from "@/features/search/constants/mentorCategories";
 
 export function useMyConnections() {

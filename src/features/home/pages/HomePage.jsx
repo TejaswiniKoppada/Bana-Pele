@@ -7,11 +7,11 @@ import {
   CommunityVoicesIcon,
   BadgeTierIcon,
   ChevronRightIcon,
-} from "@/assets/icons";
-import { useAppState } from "@/app/providers/AppStateProvider";
-import { getConnectionInfo } from "@/features/connections/api/connections.api";
-import { initialsForName } from "@/utils/formatters";
-import { formatDate } from "@/utils/date";
+} from "../../../assets/icons";
+import { useAppState } from "../../../app/providers/AppStateProvider";
+import { getConnectionInfo } from "../../connections/api/connections.api";
+import { initialsForName } from "../../../utils/formatters";
+import { formatDate } from "../../../utils/date";
 import "./HomePage.css";
 
 const MENU_ITEMS = [
@@ -52,7 +52,7 @@ const TEMP_DEMO_OVERRIDES = {
   "banad@yopmail.com": { tier: "Pre-Bronze", avatar: "/images/thandi.jpg" },
 };
 
-export default function HomePage() {
+export default function Home() {
   const { state } = useAppState();
   const { currentUser } = state;
   const navigate = useNavigate();
@@ -75,9 +75,16 @@ export default function HomePage() {
     };
   }, [currentUser.id]);
 
-  const designation = ownProfile?.designations?.length
-    ? ownProfile.designations.join(", ")
-    : "";
+  // `tagline` (see connectionsService.js's withDemoTagline) is the curated
+  // display label for the 5 non-Thandi demo accounts, e.g. "Gold Tier ELP
+  // Practitioner" for Maria rather than her real, less presentable Elevate
+  // designation ("Head master") — takes priority over the raw designations
+  // list here for exactly the same reason ConnectionCard prefers it.
+  const designation =
+    ownProfile?.tagline ||
+    (ownProfile?.designations?.length
+      ? ownProfile.designations.join(", ")
+      : "");
   const demoOverride = TEMP_DEMO_OVERRIDES[currentUser.email] || {};
   const tier = ownProfile?.elpTier || demoOverride.tier;
   const avatarImage = ownProfile?.image || demoOverride.avatar;

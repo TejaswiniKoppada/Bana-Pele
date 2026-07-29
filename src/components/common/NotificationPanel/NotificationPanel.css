@@ -46,6 +46,15 @@
   border-bottom: none;
 }
 
+.notification-item--clickable {
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+
+.notification-item--clickable:hover {
+  background: var(--color-surface-sunken);
+}
+
 .notification-item__icon {
   color: var(--color-info);
   flex-shrink: 0;
