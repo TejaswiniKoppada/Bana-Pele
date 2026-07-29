@@ -205,18 +205,6 @@ export default function Profile() {
             avatarColor={isOwnProfile ? "var(--color-primary)" : undefined}
           />
 
-          {/* Mentor -> mentee only: hidden on your own profile, on anyone not yet
-              an accepted connection, and entirely for Thandi (the demo's
-              beginner persona), regardless of whose profile she's viewing. */}
-          {!isOwnProfile &&
-            isConnected &&
-            String(state.currentUser.id) !== THANDI_USER_ID && (
-              <RecommendLearningPanel
-                mentor={state.currentUser}
-                mentee={profile}
-              />
-            )}
-
           <CollapsibleSection title="Peer Information" defaultOpen>
             <ProfileField label="About" icon={InfoIcon}>
               {profile.about}
@@ -242,6 +230,18 @@ export default function Profile() {
                 </p>
               )}
           </CollapsibleSection>
+
+          {/* Mentor -> mentee only: hidden on your own profile, on anyone not yet
+              an accepted connection, and entirely for Thandi (the demo's
+              beginner persona), regardless of whose profile she's viewing. */}
+          {!isOwnProfile &&
+            isConnected &&
+            String(state.currentUser.id) !== THANDI_USER_ID && (
+              <RecommendLearningPanel
+                mentor={state.currentUser}
+                mentee={profile}
+              />
+            )}
         </>
       )}
     </div>

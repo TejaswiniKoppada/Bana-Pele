@@ -1,7 +1,7 @@
-/* Learning card — used by every My Learning list (Pending, Recommended,
-   In Progress). See components/LearningCard/LearningCard.jsx. Thumbnail
-   treatment mirrors story-card's (cards.css) real-poster + centered play
-   badge pattern, scaled down for a list card rather than a full story. */
+/* Learning card — used by the Recommended and In Progress My Learning
+   lists. See components/LearningCard/LearningCard.jsx. Thumbnail treatment
+   mirrors story-card's (cards.css) real-poster + centered play badge
+   pattern, scaled down for a list card rather than a full story. */
 .learning-card {
   margin: 0;
   padding: 0;
@@ -17,18 +17,6 @@
 
 button.learning-card {
   cursor: pointer;
-}
-
-/* Pending needs to read as "needs action" at a glance — an accent border
-   plus a tinted body, distinct from the calmer, plain-white Recommended/
-   In Progress cards (which already sit inside their own quieter section). */
-.learning-card--pending {
-  border-color: var(--color-accent);
-  border-width: 1.5px;
-}
-
-.learning-card--pending .learning-card__body {
-  background: var(--color-accent-light);
 }
 
 /* Completed gets a clearly different, quieter treatment than in-progress:

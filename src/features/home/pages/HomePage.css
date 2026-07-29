@@ -1,9 +1,30 @@
-.profile-card {
+/* Scopes the overrides below to Home only — .card/.progress-badge are
+   shared cross-cutting classes (globals.css) reused elsewhere, so every
+   Home-specific tweak here is nested under .home-page rather than edited
+   on the shared selector directly. */
+.home-page .profile-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Soft brand-gradient header strip behind the avatar — re-themes for free
+   under the mentee palette (variables.css' [data-role='mentee'] override),
+   same as everything else that already consumes --color-primary/--color-accent. */
+.profile-card__cover {
+  height: 44px;
+  background: linear-gradient(
+    120deg,
+    var(--color-primary) 0%,
+    var(--color-accent) 100%
+  );
+}
+
+.profile-card__row {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-md);
-  margin: var(--space-md) var(--space-md) var(--space-md);
+  padding: 0 var(--space-md) var(--space-md);
+  margin-top: -22px;
 }
 
 .profile-card__identity {
@@ -26,6 +47,17 @@
 
 .profile-card__identity:hover {
   background: var(--color-surface-sunken);
+}
+
+/* Lifts the avatar half onto the gradient strip, half onto the white body —
+   the white ring is what makes it read as "sitting on top" of the seam. */
+.profile-card__avatar-ring {
+  display: block;
+  border-radius: 50%;
+  background: var(--color-surface);
+  padding: 3px;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
 .profile-card__body {
@@ -53,10 +85,66 @@
   flex-direction: column;
   gap: 2px;
   flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.profile-card__joined span {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: var(--font-weight-medium);
 }
 
 .profile-card__joined strong {
   color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Progress badge — same info as before, just given a proper icon chip and a
+   pill-style tier callout instead of bare icon + stacked text. */
+.home-page .progress-badge {
+  align-items: center;
+}
+
+.progress-badge__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.progress-badge__icon {
+  color: var(--color-accent-dark);
+  flex-shrink: 0;
+}
+
+.progress-badge__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-badge__name {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+}
+
+.progress-badge__location {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.home-page .progress-badge__tier {
+  flex-direction: row;
+  gap: 6px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  padding: 6px var(--space-sm);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
 }
 
 .menu-list {
@@ -77,10 +165,15 @@
   font-size: var(--font-size-base);
   color: var(--color-text);
   border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition-base);
 }
 
 .menu-list__item:not(.menu-list__item--disabled):hover {
   background: var(--color-surface-sunken);
+}
+
+.menu-list__item:not(.menu-list__item--disabled):hover .menu-list__chevron {
+  transform: translateX(2px);
 }
 
 .menu-list li:last-child .menu-list__item {
@@ -91,10 +184,27 @@
   color: var(--color-text-muted);
 }
 
+.menu-list__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.menu-list__item--disabled .menu-list__icon-wrap {
+  opacity: 0.6;
+}
+
 .menu-list__chevron {
   margin-left: auto;
   color: var(--color-accent);
   flex-shrink: 0;
+  transition: transform var(--transition-base);
 }
 
 /* Home's content is a single summary column (profile + menu), not a
@@ -109,4 +219,3 @@
     margin-right: auto;
   }
 }
-
