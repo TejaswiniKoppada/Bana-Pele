@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase/client.js";
 function mapRecommendation(row) {
   return {
     id: row.id,
+    groupId: row.recommendation_group_id,
     mentorId: row.mentor_id,
     mentorName: row.mentor_name,
     menteeId: row.mentee_id,
@@ -35,7 +36,13 @@ function randomInRange(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-/** Mentor recommends one or more catalog items to a connection — one row per item, all 'pending'. */
+/**
+ * Mentor recommends one or more catalog items to a connection — one row per
+ * item, sharing a single recommendation_group_id so the materials sent
+ * together in this one action can be queried/displayed as one card (see
+ * getRecommendationsByStatus + RecommendedLearningPage.jsx). They land
+ * straight in 'accepted' — there is no pending/accept step.
+ */
 export async function createRecommendations({
   mentorId,
   mentorName,
@@ -43,7 +50,10 @@ export async function createRecommendations({
   menteeName,
   items,
 }) {
+  const groupId = crypto.randomUUID();
+  const acceptedAt = new Date().toISOString();
   const rows = items.map((item) => ({
+    recommendation_group_id: groupId,
     mentor_id: String(mentorId),
     mentor_name: mentorName,
     mentee_id: String(menteeId),
@@ -52,6 +62,8 @@ export async function createRecommendations({
     skill_category: item.skillCategory,
     material_type: item.materialType,
     resource_link: item.resourceLink,
+    status: "accepted",
+    accepted_at: acceptedAt,
   }));
   const { error } = await supabase
     .from("learning_recommendations")
@@ -71,24 +83,16 @@ export async function getRecommendationsByStatus(menteeId, statuses) {
   return (data ?? []).map(mapRecommendation);
 }
 
-/** Pending -> accepted. */
-export async function acceptRecommendation(id) {
-  const { error } = await supabase
-    .from("learning_recommendations")
-    .update({ status: "accepted", accepted_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) throw error;
-}
-
 /**
- * Accepted -> in_progress (also called when the resource link is opened).
- * progress_percent is seeded to a "just started" 10-25% — DEMO-ILLUSTRATIVE
- * ONLY, not real video-watch telemetry (not feasible without a player
- * integration) — so the Progress tab shows a real partial bar instead of
- * jumping straight from 0 to Completed. Only completeRecommendation below
- * is allowed to reach 100.
+ * Accepted -> in_progress for every row in a recommendation group at once,
+ * so the "Start Learning" button on a grouped Recommended card moves all of
+ * that group's materials together. progress_percent is seeded to a "just
+ * started" 10-25% — DEMO-ILLUSTRATIVE ONLY, not real video-watch telemetry
+ * (not feasible without a player integration) — so the Progress tab shows a
+ * real partial bar instead of jumping straight from 0 to Completed. Only
+ * completeRecommendation below is allowed to reach 100.
  */
-export async function startRecommendation(id) {
+export async function startRecommendationGroup(groupId) {
   const { error } = await supabase
     .from("learning_recommendations")
     .update({
@@ -96,7 +100,7 @@ export async function startRecommendation(id) {
       started_at: new Date().toISOString(),
       progress_percent: randomInRange(10, 25),
     })
-    .eq("id", id);
+    .eq("recommendation_group_id", groupId);
   if (error) throw error;
 }
 
@@ -104,7 +108,7 @@ export async function startRecommendation(id) {
  * Nudges an in-progress item's simulated progress up by 15-20%, capped at
  * 95 so it can never read as complete on its own — optional, called when
  * the mentee reopens an in-progress item's detail view, to simulate
- * continued engagement. Same demo-illustrative caveat as startRecommendation.
+ * continued engagement. Same demo-illustrative caveat as startRecommendationGroup.
  */
 export async function bumpRecommendationProgress(id, currentPercent) {
   const next = Math.min((currentPercent ?? 0) + randomInRange(15, 20), 95);
@@ -130,17 +134,21 @@ export async function completeRecommendation(id) {
 }
 
 /**
- * Pending recommendations for a mentee, grouped by mentor — feeds the real
- * "you have new recommended learning" notification (see
- * notificationsService.js). `count` is how many items that mentor sent in
- * one go; groups sort newest-first by their most recent item.
+ * Newly-accepted (not yet started) recommendations for a mentee, grouped by
+ * mentor — feeds the real "you have new recommended learning" bell
+ * notification (see notifications.api.js). `count` is how many items that
+ * mentor has recommended that are still sitting in Recommended (i.e. not
+ * yet moved to in_progress); groups sort newest-first by their most recent
+ * item. Same aggregation this fed before the pending/accept step was
+ * removed — just keyed off 'accepted' instead of 'pending' now that
+ * recommendations land there directly.
  */
-export async function getPendingRecommendationGroups(menteeId) {
+export async function getNewRecommendationGroups(menteeId) {
   const { data, error } = await supabase
     .from("learning_recommendations")
     .select("mentor_id, mentor_name, created_at")
     .eq("mentee_id", String(menteeId))
-    .eq("status", "pending")
+    .eq("status", "accepted")
     .order("created_at", { ascending: false });
   if (error) throw error;
 

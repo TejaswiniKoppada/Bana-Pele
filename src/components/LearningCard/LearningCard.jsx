@@ -2,22 +2,19 @@ import { CheckIcon, PlayIcon, VideoIcon, YouTubeIcon } from '../../assets/icons'
 import { getYouTubeThumbnailUrl, getYouTubeVideoId, thumbnailPlaceholderGradient } from '../../utils/formatters';
 
 /**
- * Shared card look for every My Learning list (Pending, Recommended/accepted,
- * In Progress) — every item here is a real YouTube link (see
- * services/learningCatalog.js), so the real public thumbnail CDN
- * (getYouTubeThumbnailUrl, same helper StoryCard already uses) gives each
- * card a real poster image instead of just a text row, with a styled
- * fallback (gradient + link icon swap) for the rare non-YouTube link.
- * `onClick` makes the whole card a button (used for the accepted list,
- * which opens the detail page); omit it for lists that already have their
- * own footer action button, since a button can't be nested inside another.
- * `pending` gives the card its own highlighted border/tint so the section
- * that needs action reads as visually distinct from the calmer Recommended/
- * In Progress cards. In-progress items get a real progress bar driven by
- * `item.progressPercent` (demo-illustrative — see learningService.js);
- * completed items get a checkmark badge and a muted thumbnail instead.
+ * Shared card look for every My Learning list (Recommended, In Progress) —
+ * every item here is a real YouTube link (see services/learningCatalog.js),
+ * so the real public thumbnail CDN (getYouTubeThumbnailUrl, same helper
+ * StoryCard already uses) gives each card a real poster image instead of
+ * just a text row, with a styled fallback (gradient + link icon swap) for
+ * the rare non-YouTube link. `onClick` makes the whole card a button; omit
+ * it for lists that already have their own footer action button, since a
+ * button can't be nested inside another. In-progress items get a real
+ * progress bar driven by `item.progressPercent` (demo-illustrative — see
+ * learningService.js); completed items get a checkmark badge and a muted
+ * thumbnail instead.
  */
-export default function LearningCard({ item, onClick, statusLabel, statusTone, pending, footer }) {
+export default function LearningCard({ item, onClick, statusLabel, statusTone, footer }) {
   const youtubeId = getYouTubeVideoId(item.resourceLink);
   const posterUrl = getYouTubeThumbnailUrl(item.resourceLink);
   const Wrapper = onClick ? 'button' : 'div';
@@ -27,7 +24,7 @@ export default function LearningCard({ item, onClick, statusLabel, statusTone, p
   return (
     <Wrapper
       type={onClick ? 'button' : undefined}
-      className={`card learning-card${pending ? ' learning-card--pending' : ''}${isCompleted ? ' learning-card--completed' : ''}`}
+      className={`card learning-card${isCompleted ? ' learning-card--completed' : ''}`}
       onClick={onClick}
     >
       <div

@@ -2,7 +2,7 @@
 // Will hold the Web Push subscription/unsubscription calls to the hosted
 // Elevate backend once the Interface Service exposes notification endpoints.
 
-import { getPendingRecommendationGroups } from "@/services/learningService";
+import { getNewRecommendationGroups } from "@/services/learningService";
 
 export function subscribeToPush() {
   return Promise.reject(
@@ -15,18 +15,19 @@ export function subscribeToPush() {
 /**
  * The one real, DB-backed notification in this list — everything else
  * below (NOTIFICATIONS) is still static demo content, deliberately not
- * rebuilt here. One entry per mentor with a pending recommendation for this
- * mentee (e.g. "Maria sent you 2 recommended learning materials"), newest
- * first; tapping it (see NotificationPanel.jsx's `to`) opens My Learning.
- * Swallows errors rather than throwing, so a Supabase hiccup only means
- * this one real entry is missing, not that the whole panel fails to open.
+ * rebuilt here. One entry per mentor with a newly-accepted (not yet
+ * started) recommendation for this mentee (e.g. "Maria sent you 2
+ * recommended learning materials"), newest first; tapping it (see
+ * NotificationPanel.jsx's `to`) opens My Learning. Swallows errors rather
+ * than throwing, so a Supabase hiccup only means this one real entry is
+ * missing, not that the whole panel fails to open.
  */
 async function getLearningRecommendationNotifications(menteeId) {
   if (!menteeId) return [];
   try {
-    const groups = await getPendingRecommendationGroups(menteeId);
+    const groups = await getNewRecommendationGroups(menteeId);
     return groups.map((group) => ({
-      id: `learning-pending-${group.mentorId}`,
+      id: `learning-recommended-${group.mentorId}`,
       type: "learning-recommendation",
       title: "New learning recommended",
       body: [

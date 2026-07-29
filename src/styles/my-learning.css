@@ -2,27 +2,6 @@
   padding-bottom: var(--space-lg);
 }
 
-/* Visually distinct from the Recommended list below it — pending items
-   still need an Accept action before they're really "recommended". Cards
-   inside (see components/LearningCard) supply their own look; this is just
-   the section wrapper + heading. */
-.learning-pending {
-  margin: 0 var(--space-md) var(--space-lg);
-  padding: var(--space-md);
-  background: var(--color-accent-light);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-md);
-}
-
-.learning-pending__title {
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent-dark);
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  margin-bottom: var(--space-md);
-}
-
 /* Card grid — mirrors .connection-list/.story-list (cards.css): a plain
    stack on mobile, a real multi-column grid from tablet width up. */
 .learning-card-list {
@@ -32,17 +11,56 @@
   margin: 0 var(--space-md) var(--space-md);
 }
 
-/* Nested inside .learning-pending's own padded box — no extra margin needed. */
-.learning-pending .learning-card-list {
-  margin: 0;
-}
-
 @media (min-width: 640px) {
   .learning-card-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     align-items: start;
   }
+}
+
+/* One card per Recommend Learning action (RecommendedLearningPage.jsx) — all
+   materials a mentor sent together in one go, grouped by
+   recommendation_group_id, with a single Start Learning button that moves
+   the whole group to In Progress at once. */
+.learning-recommendation-group {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.learning-recommendation-group__message {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.learning-recommendation-group__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.learning-recommendation-group__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.learning-recommendation-group__item-title {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.learning-recommendation-group__item-meta {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
 }
 
 .learning-detail-page {

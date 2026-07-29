@@ -6,7 +6,7 @@ import { sendChatMessage } from "../../features/chat/api/chat.api";
 import "../../styles/recommend-learning-panel.css";
 
 const DEFAULT_NOTIFY_MESSAGE =
-  "I've recommended some learning materials for you! Open My Learning to view and accept them.";
+  "I've recommended some learning materials for you! Open My Learning to check them out.";
 
 /**
  * Mentor -> mentee only (gated by the caller: hidden on your own profile and
@@ -22,6 +22,7 @@ export default function RecommendLearningPanel({ mentor, mentee }) {
   const [message, setMessage] = useState("");
   const [sendState, setSendState] = useState("idle"); // 'idle' | 'sending' | 'sent' | 'error'
   const [sendError, setSendError] = useState("");
+  const [chatWarning, setChatWarning] = useState("");
 
   function toggleItem(id) {
     setSelectedIds((prev) => {
@@ -37,6 +38,7 @@ export default function RecommendLearningPanel({ mentor, mentee }) {
     if (items.length === 0) return;
     setSendState("sending");
     setSendError("");
+    setChatWarning("");
     try {
       await createRecommendations({
         mentorId: mentor.id,
@@ -45,25 +47,41 @@ export default function RecommendLearningPanel({ mentor, mentee }) {
         menteeName: mentee.name,
         items,
       });
-      if (!mentee.roomId) {
-        throw new Error(
-          "Recommendations were saved, but the chat notification could not be sent (no chat room found for this connection yet).",
-        );
-      }
-      // Personal note is optional — a blank field sends exactly the
-      // original default message, unchanged.
-      const trimmedMessage = message.trim();
-      const notifyMessage = trimmedMessage
-        ? `${trimmedMessage} — I've also recommended some learning materials for you, check My Learning!`
-        : DEFAULT_NOTIFY_MESSAGE;
-      await sendChatMessage(mentee.roomId, notifyMessage);
-      setSendState("sent");
-      setSelectedIds(new Set());
-      setMessage("");
     } catch (err) {
       setSendState("error");
       setSendError(
         err.message || "Could not send the recommendation. Please try again.",
+      );
+      return;
+    }
+
+    // The recommendation rows are committed at this point — the mentee will
+    // already see them in My Learning. Flip to "sent" right away rather than
+    // waiting on the chat ping below: that's a real network call to a
+    // separate external service (Rocket.Chat) and can be slow, so blocking
+    // on it left the button reading "Sending…" long after the recommendation
+    // had actually gone through.
+    setSendState("sent");
+    setSelectedIds(new Set());
+    setMessage("");
+
+    if (!mentee.roomId) {
+      setChatWarning(
+        "The chat notification could not be sent (no chat room found for this connection yet).",
+      );
+      return;
+    }
+    // Personal note is optional — a blank field sends exactly the
+    // original default message, unchanged.
+    const trimmedMessage = message.trim();
+    const notifyMessage = trimmedMessage
+      ? `${trimmedMessage} — I've also recommended some learning materials for you, check My Learning!`
+      : DEFAULT_NOTIFY_MESSAGE;
+    try {
+      await sendChatMessage(mentee.roomId, notifyMessage);
+    } catch (err) {
+      setChatWarning(
+        err.message || "The chat notification could not be sent.",
       );
     }
   }
@@ -85,10 +103,17 @@ export default function RecommendLearningPanel({ mentor, mentee }) {
       {expanded && (
         <div className="recommend-learning-panel__body">
           {sendState === "sent" ? (
-            <p className="recommend-learning-panel__success">
-              Sent! {mentee.name} will see it in My Learning and got a chat
-              notification.
-            </p>
+            <>
+              <p className="recommend-learning-panel__success">
+                Sent! {mentee.name} will see it in My Learning
+                {chatWarning ? "." : " and got a chat notification."}
+              </p>
+              {chatWarning && (
+                <p className="recommend-learning-panel__error">
+                  {chatWarning}
+                </p>
+              )}
+            </>
           ) : (
             <>
               <p className="recommend-learning-panel__hint">

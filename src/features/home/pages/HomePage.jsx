@@ -101,48 +101,57 @@ export default function Home() {
   }
 
   return (
-    <div>
+    <div className="home-page">
       <div className="card profile-card">
-        <button
-          type="button"
-          className="profile-card__identity"
-          onClick={handleOpenOwnProfile}
-          aria-label={`View ${currentUser.name}'s details`}
-        >
-          {avatarImage && !avatarLoadFailed ? (
-            <img
-              className="card__avatar card__avatar--photo"
-              src={avatarImage}
-              alt=""
-              style={{ width: 56, height: 56 }}
-              onError={() => setAvatarLoadFailed(true)}
-            />
-          ) : (
-            <div
-              className="card__avatar"
-              style={{
-                background: "var(--color-primary)",
-                width: 56,
-                height: 56,
-                fontSize: 20,
-              }}
-            >
-              {initialsForName(currentUser.name)}
+        <div className="profile-card__cover" aria-hidden="true" />
+        <div className="profile-card__row">
+          <button
+            type="button"
+            className="profile-card__identity"
+            onClick={handleOpenOwnProfile}
+            aria-label={`View ${currentUser.name}'s details`}
+          >
+            <span className="profile-card__avatar-ring">
+              {avatarImage && !avatarLoadFailed ? (
+                <img
+                  className="card__avatar card__avatar--photo"
+                  src={avatarImage}
+                  alt=""
+                  style={{ width: 56, height: 56 }}
+                  onError={() => setAvatarLoadFailed(true)}
+                />
+              ) : (
+                <div
+                  className="card__avatar"
+                  style={{
+                    background: "var(--color-primary)",
+                    width: 56,
+                    height: 56,
+                    fontSize: 20,
+                  }}
+                >
+                  {initialsForName(currentUser.name)}
+                </div>
+              )}
+            </span>
+            <div className="profile-card__body">
+              <p className="profile-card__name">{currentUser.name}</p>
+              {designation && (
+                <p className="profile-card__role">{designation}</p>
+              )}
             </div>
-          )}
-          <div className="profile-card__body">
-            <p className="profile-card__name">{currentUser.name}</p>
-            {designation && <p className="profile-card__role">{designation}</p>}
+          </button>
+          <div className="profile-card__joined">
+            <span>Joined On</span>
+            <strong>{formatDate(currentUser.joinedOn)}</strong>
           </div>
-        </button>
-        <div className="profile-card__joined">
-          <span>Joined On:</span>
-          <strong>{formatDate(currentUser.joinedOn)}</strong>
         </div>
       </div>
 
       <div className="progress-badge">
-        <RegistrationGuideIcon className="progress-badge__icon" />
+        <span className="progress-badge__icon-wrap">
+          <RegistrationGuideIcon className="progress-badge__icon" />
+        </span>
         <div className="progress-badge__info">
           <p className="progress-badge__name">NoName</p>
           <p className="progress-badge__location">NoLocation</p>
@@ -160,7 +169,9 @@ export default function Home() {
           <li key={label}>
             {enabled ? (
               <Link to={to} className="menu-list__item">
-                <Icon />
+                <span className="menu-list__icon-wrap">
+                  <Icon />
+                </span>
                 <span>{label}</span>
                 <ChevronRightIcon className="menu-list__chevron" />
               </Link>
@@ -169,7 +180,9 @@ export default function Home() {
                 className="menu-list__item menu-list__item--disabled"
                 title="Not part of this phase"
               >
-                <Icon />
+                <span className="menu-list__icon-wrap">
+                  <Icon />
+                </span>
                 <span>{label}</span>
                 <ChevronRightIcon className="menu-list__chevron" />
               </span>
