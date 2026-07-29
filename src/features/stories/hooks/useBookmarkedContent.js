@@ -1,13 +1,33 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BOOKMARKED_PAGE_SIZE, getBookmarkedContentItems, removeBookmark } from '../api/bookmarks.api';
 
-/** The Bookmarked tab's data: this user's bookmarked content_items, paginated server-side. */
-export function useBookmarkedContent(userId) {
+// How long to wait after the user stops typing before the search actually
+// re-queries Supabase — keeps a fast typist from firing a request per keystroke.
+const SEARCH_DEBOUNCE_MS = 400;
+
+/**
+ * The Bookmarked tab's data: this user's bookmarked content_items, paginated
+ * server-side and optionally filtered by a (debounced) title search — the
+ * search runs server-side too, so pagination reflects the filtered result
+ * count, not just what's on the current page.
+ */
+export function useBookmarkedContent(userId, search = '') {
   const [page, setPage] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [items, setItems] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Debounce the raw search text, and jump back to page 1 once it settles —
+  // both updates land in the same tick so the fetch effect below only fires once.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [search]);
 
   const fetchPage = useCallback(
     async (targetPage) => {
@@ -22,6 +42,7 @@ export function useBookmarkedContent(userId) {
         const { items: data, totalCount: count } = await getBookmarkedContentItems(userId, {
           page: targetPage,
           pageSize: BOOKMARKED_PAGE_SIZE,
+          search: debouncedSearch,
         });
         setItems(data);
         setTotalCount(count);
@@ -34,7 +55,7 @@ export function useBookmarkedContent(userId) {
         setLoading(false);
       }
     },
-    [userId]
+    [userId, debouncedSearch]
   );
 
   useEffect(() => {

@@ -8,27 +8,37 @@ import { useAppState } from '@/app/providers/AppStateProvider';
 
 export default function BookmarkedStoriesPage() {
   const { state } = useAppState();
-  const { items, loading, error, page, totalPages, goToPage, unbookmark } = useBookmarkedContent(
-    state.currentUser.id
-  );
   const [query, setQuery] = useState('');
-
-  // Filters within the page currently on screen — search doesn't reach across
-  // other pages, since only the current page's items are ever fetched.
-  const visibleItems = items.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()));
+  const { items, loading, error, page, totalPages, goToPage, unbookmark } = useBookmarkedContent(
+    state.currentUser.id,
+    query
+  );
+  const [playingId, setPlayingId] = useState(null);
 
   return (
     <div>
-      <SearchBar value={query} onChange={setQuery} placeholder="Search" onFilterClick={() => {}} />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search" showMic={false} />
 
       {loading && <Loader label="Loading bookmarked stories…" />}
       {!loading && error && <p className="page-status">{error}</p>}
-      {!loading && !error && visibleItems.length === 0 && <p className="page-status">No bookmarked stories yet.</p>}
+      {!loading && !error && items.length === 0 && (
+        <p className="page-status">
+          {query.trim() ? 'No bookmarked stories match that search.' : 'No bookmarked stories yet.'}
+        </p>
+      )}
 
-      {!loading && !error && visibleItems.length > 0 && (
+      {!loading && !error && items.length > 0 && (
         <div className="story-list">
-          {visibleItems.map((item) => (
-            <StoryCard key={item.id} story={item} bookmarked onBookmarkToggle={() => unbookmark(item.id)} />
+          {items.map((item) => (
+            <StoryCard
+              key={item.id}
+              story={item}
+              bookmarked
+              onBookmarkToggle={() => unbookmark(item.id)}
+              playing={playingId === item.id}
+              onPlay={() => setPlayingId(item.id)}
+              onStop={() => setPlayingId(null)}
+            />
           ))}
         </div>
       )}

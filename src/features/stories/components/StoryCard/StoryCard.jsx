@@ -62,9 +62,11 @@ export default function StoryCard({
   shareable,
   onShare,
   onDelete,
+  playing = false,
+  onPlay,
+  onStop,
 }) {
   const { title, sourceUrl, storyType, thumbnailUrl } = story;
-  const [playing, setPlaying] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareBusyId, setShareBusyId] = useState(null);
   const [shareStatus, setShareStatus] = useState("");
@@ -149,7 +151,7 @@ export default function StoryCard({
               type="button"
               className="story-card__player-close"
               aria-label="Stop playing"
-              onClick={() => setPlaying(false)}
+              onClick={() => onStop?.()}
             >
               <CloseIcon />
             </button>
@@ -195,7 +197,7 @@ export default function StoryCard({
               <button
                 type="button"
                 className="story-card__play-btn"
-                onClick={() => setPlaying(true)}
+                onClick={() => onPlay?.()}
                 aria-label={`Play ${title}`}
               >
                 <PlayIcon />
