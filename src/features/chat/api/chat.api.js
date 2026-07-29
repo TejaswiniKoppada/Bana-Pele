@@ -28,18 +28,41 @@ export function getMyChatUserId() {
   return getChatUserId();
 }
 
+// A plain fetch() to an unresponsive host (e.g. the chat backend down/
+// unreachable) never rejects on its own — the browser's own TCP timeout can
+// take minutes, which is what left "Loading messages…"/"Sending…" spinning
+// seemingly forever. This bounds every chat call so a dead backend surfaces
+// as a clear error instead.
+const CHAT_REQUEST_TIMEOUT_MS = 15000;
+
 async function chatFetch(path, body, { isRetry = false } = {}) {
   const { authToken, userId } = await ensureChatSession();
 
-  const response = await fetch(`${CHAT_API_BASE_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Auth-Token': authToken,
-      'X-User-Id': userId,
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    CHAT_REQUEST_TIMEOUT_MS,
+  );
+  let response;
+  try {
+    response = await fetch(`${CHAT_API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': authToken,
+        'X-User-Id': userId,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('The chat service is taking too long to respond. Please try again later.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const data = await response.json().catch(() => null);
   const isAuthError = response.status === 401 || data?.status === 'error';

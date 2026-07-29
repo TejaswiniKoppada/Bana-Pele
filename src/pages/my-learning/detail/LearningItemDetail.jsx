@@ -10,7 +10,7 @@ import {
 import { useAppState } from "../../../app/providers/AppStateProvider";
 import {
   getRecommendationsByStatus,
-  startRecommendationGroup,
+  startRecommendation,
 } from "../../../services/learningService";
 import {
   getYouTubeThumbnailUrl,
@@ -61,7 +61,7 @@ export default function LearningItemDetail() {
     setStarting(true);
     window.open(item.resourceLink, "_blank", "noopener,noreferrer");
     try {
-      await startRecommendationGroup(item.groupId);
+      await startRecommendation(item.id);
       navigate("/my-learning/in-progress");
     } finally {
       setStarting(false);

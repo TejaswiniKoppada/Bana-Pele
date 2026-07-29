@@ -40,17 +40,30 @@ export default function Chat() {
   const [draft, setDraft] = useState("");
   const listRef = useRef(null);
 
-  // Resolve the connection (and its room_id) if the Chat button didn't hand
-  // it to us via navigation state — e.g. a direct link or page refresh.
+  // Resolve the connection's room_id if the Chat button didn't hand us one
+  // already — not just when `connection` itself is missing (direct link/page
+  // refresh), but also when it arrived via navigation state that never
+  // carries a room_id in the first place (e.g. Profile's Chat button, whose
+  // `connection` comes from connections/getInfo — see ProfilePage.jsx).
+  // Without this, the message-loading effect below never runs (it requires
+  // roomId) and "Loading messages…" was left showing forever.
   useEffect(() => {
-    if (connection) return;
+    if (connection?.roomId) return;
     let cancelled = false;
     getMyConnections()
       .then((list) => {
         if (cancelled) return;
         const match = list.find((c) => c.id === connectionId) ?? null;
-        setConnection(match);
-        if (!match) setLoading(false);
+        if (match) {
+          setConnection((prev) => (prev ? { ...prev, ...match } : match));
+          // No further recovery possible if even this lookup has no room_id
+          // — stop the spinner instead of waiting on the message-loading
+          // effect below, which won't run without one.
+          if (!match.roomId) setLoading(false);
+        } else {
+          if (!connection) setConnection(null);
+          setLoading(false);
+        }
       })
       .catch(() => {
         if (!cancelled) setLoading(false);
@@ -58,7 +71,8 @@ export default function Chat() {
     return () => {
       cancelled = true;
     };
-  }, [connection, connectionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionId]);
 
   // Load history, then poll for new messages while this screen stays open.
   useEffect(() => {
@@ -169,10 +183,16 @@ export default function Chat() {
         <>
           <div className="chat-page__messages" ref={listRef}>
             {loading && <p className="page-status">Loading messages…</p>}
-            {!loading && messages.length === 0 && (
+            {!loading && !connection.roomId && (
+              <p className="page-status">
+                Chat isn't available for this connection yet.
+              </p>
+            )}
+            {!loading && connection.roomId && messages.length === 0 && (
               <p className="page-status">No messages yet. Say hello!</p>
             )}
             {!loading &&
+              connection.roomId &&
               messages.map((message) => {
                 const isMine = message.senderId === myChatUserId;
                 return (

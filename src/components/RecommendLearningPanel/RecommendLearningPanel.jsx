@@ -58,9 +58,9 @@ export default function RecommendLearningPanel({ mentor, mentee }) {
     // The recommendation rows are committed at this point — the mentee will
     // already see them in My Learning. Flip to "sent" right away rather than
     // waiting on the chat ping below: that's a real network call to a
-    // separate external service (Rocket.Chat) and can be slow, so blocking
-    // on it left the button reading "Sending…" long after the recommendation
-    // had actually gone through.
+    // separate external service (Rocket.Chat) and can be slow or fail (e.g.
+    // "Failed to fetch"), which was surfacing as a scary red error even
+    // though the recommendation itself had already gone through.
     setSendState("sent");
     setSelectedIds(new Set());
     setMessage("");

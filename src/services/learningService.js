@@ -84,15 +84,15 @@ export async function getRecommendationsByStatus(menteeId, statuses) {
 }
 
 /**
- * Accepted -> in_progress for every row in a recommendation group at once,
- * so the "Start Learning" button on a grouped Recommended card moves all of
- * that group's materials together. progress_percent is seeded to a "just
+ * Accepted -> in_progress for a single recommendation (each Recommended
+ * card is one material, with its own Start Learning button — see
+ * RecommendedLearningPage.jsx). progress_percent is seeded to a "just
  * started" 10-25% — DEMO-ILLUSTRATIVE ONLY, not real video-watch telemetry
  * (not feasible without a player integration) — so the Progress tab shows a
  * real partial bar instead of jumping straight from 0 to Completed. Only
  * completeRecommendation below is allowed to reach 100.
  */
-export async function startRecommendationGroup(groupId) {
+export async function startRecommendation(id) {
   const { error } = await supabase
     .from("learning_recommendations")
     .update({
@@ -100,7 +100,7 @@ export async function startRecommendationGroup(groupId) {
       started_at: new Date().toISOString(),
       progress_percent: randomInRange(10, 25),
     })
-    .eq("recommendation_group_id", groupId);
+    .eq("id", id);
   if (error) throw error;
 }
 
@@ -108,7 +108,7 @@ export async function startRecommendationGroup(groupId) {
  * Nudges an in-progress item's simulated progress up by 15-20%, capped at
  * 95 so it can never read as complete on its own — optional, called when
  * the mentee reopens an in-progress item's detail view, to simulate
- * continued engagement. Same demo-illustrative caveat as startRecommendationGroup.
+ * continued engagement. Same demo-illustrative caveat as startRecommendation.
  */
 export async function bumpRecommendationProgress(id, currentPercent) {
   const next = Math.min((currentPercent ?? 0) + randomInRange(15, 20), 95);
@@ -135,13 +135,15 @@ export async function completeRecommendation(id) {
 
 /**
  * Newly-accepted (not yet started) recommendations for a mentee, grouped by
- * mentor — feeds the real "you have new recommended learning" bell
- * notification (see notifications.api.js). `count` is how many items that
- * mentor has recommended that are still sitting in Recommended (i.e. not
- * yet moved to in_progress); groups sort newest-first by their most recent
- * item. Same aggregation this fed before the pending/accept step was
- * removed — just keyed off 'accepted' instead of 'pending' now that
- * recommendations land there directly.
+ * mentor — feeds the real "you have new recommended learning" notification
+ * (see notificationsService.js). Filters on 'accepted' rather than
+ * 'pending': the learning_recommendations table's status check constraint
+ * no longer allows 'pending' at all (see
+ * supabase/migrations/0008_learning_recommendations_grouping.sql — rows now
+ * land as 'accepted' directly), so a 'pending' filter here would silently
+ * match zero rows forever, which is exactly what was suppressing this
+ * notification. `count` is how many items that mentor sent in one go;
+ * groups sort newest-first by their most recent item.
  */
 export async function getNewRecommendationGroups(menteeId) {
   const { data, error } = await supabase
