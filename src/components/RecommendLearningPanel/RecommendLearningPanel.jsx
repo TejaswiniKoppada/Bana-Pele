@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { ChevronRightIcon } from "@/assets/icons";
-import { LEARNING_CATALOG } from "@/services/learningCatalog";
-import { createRecommendations } from "@/services/learningService";
-import { sendChatMessage } from "@/features/chat/api/chat.api";
-import "@/styles/recommend-learning-panel.css";
+import { ChevronRightIcon } from "../../assets/icons";
+import { LEARNING_CATALOG } from "../../services/learningCatalog";
+import { createRecommendations } from "../../services/learningService";
+import { sendChatMessage } from "../../features/chat/api/chat.api";
+import "../../styles/recommend-learning-panel.css";
 
-const NOTIFY_MESSAGE =
+const DEFAULT_NOTIFY_MESSAGE =
   "I've recommended some learning materials for you! Open My Learning to view and accept them.";
 
 /**
@@ -19,6 +19,7 @@ const NOTIFY_MESSAGE =
 export default function RecommendLearningPanel({ mentor, mentee }) {
   const [expanded, setExpanded] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [message, setMessage] = useState("");
   const [sendState, setSendState] = useState("idle"); // 'idle' | 'sending' | 'sent' | 'error'
   const [sendError, setSendError] = useState("");
 
@@ -49,9 +50,16 @@ export default function RecommendLearningPanel({ mentor, mentee }) {
           "Recommendations were saved, but the chat notification could not be sent (no chat room found for this connection yet).",
         );
       }
-      await sendChatMessage(mentee.roomId, NOTIFY_MESSAGE);
+      // Personal note is optional — a blank field sends exactly the
+      // original default message, unchanged.
+      const trimmedMessage = message.trim();
+      const notifyMessage = trimmedMessage
+        ? `${trimmedMessage} — I've also recommended some learning materials for you, check My Learning!`
+        : DEFAULT_NOTIFY_MESSAGE;
+      await sendChatMessage(mentee.roomId, notifyMessage);
       setSendState("sent");
       setSelectedIds(new Set());
+      setMessage("");
     } catch (err) {
       setSendState("error");
       setSendError(
@@ -105,6 +113,17 @@ export default function RecommendLearningPanel({ mentor, mentee }) {
                   </li>
                 ))}
               </ul>
+
+              <label className="recommend-learning-panel__message-field">
+                <span>Add a message (optional)</span>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder={`Say something to ${mentee.name}…`}
+                  rows={3}
+                  maxLength={300}
+                />
+              </label>
 
               {sendState === "error" && sendError && (
                 <p className="recommend-learning-panel__error">{sendError}</p>

@@ -1,0 +1,375 @@
+/* .card, .card:hover, and .connection-list/.story-list are already defined
+   in globals.css — kept out of here on purpose. Redeclaring them here (even
+   with identical values) risks winning the cascade over other pages' rules
+   of equal specificity purely by import order, e.g. it previously stomped
+   HomePage.css's ".profile-card" centering media query since this file
+   loads after HomePage.css in the module graph. */
+
+/* Connection card */
+.connection-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  height: 116px;
+  box-sizing: border-box;
+}
+
+.connection-card[role="button"] {
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.connection-card[role="button"]:hover {
+  transform: translateY(-2px);
+}
+
+/* Soft gradient ring around the avatar (photo or initials alike) — a
+   small, consistent touch of polish shared by every card. */
+.connection-card__avatar-ring {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--color-accent) 0%,
+    var(--color-primary) 100%
+  );
+}
+
+/* Scoped to the ring wrapper (not a bare .card__avatar redeclaration) so
+   this fill-the-parent sizing can't win the cascade over other pages'
+   .card__avatar usage — see the note above about import-order footguns. */
+.connection-card__avatar-ring .card__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: inset 0 0 0 2px var(--color-surface);
+  border: 2px solid var(--color-surface);
+}
+
+.connection-card__body {
+  flex: 1;
+  min-width: 0;
+  align-self: flex-start;
+  overflow: hidden;
+}
+
+.connection-card__name {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  letter-spacing: var(--letter-spacing-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connection-card__tier {
+  color: var(--color-accent-dark);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connection-card__date {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  margin-top: var(--space-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connection-card__action-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  transition:
+    background var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-fast);
+}
+
+.connection-card__action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.connection-card__action-btn:hover:not(:disabled) {
+  background: var(--color-accent-light);
+}
+
+.connection-card__action-btn:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+/* Chat is the primary action on an accepted connection — filled to stand
+   out, matching the app's gradient primary-button treatment elsewhere. */
+.connection-card__action-btn--filled {
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.connection-card__action-btn--filled:hover:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  box-shadow: var(--shadow-md);
+}
+
+.connection-card__request-error {
+  color: var(--color-badge);
+  font-size: var(--font-size-xs);
+  margin-top: var(--space-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Story card */
+.story-card__thumbnail {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-card__thumbnail::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 55%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.story-card__bookmark-btn {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  z-index: 2;
+  color: var(--color-text-on-primary);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: rgba(20, 15, 33, 0.28);
+}
+
+.story-card__bookmark-btn:hover {
+  background: rgba(20, 15, 33, 0.42);
+}
+
+.story-card__delete-btn {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 2;
+  color: var(--color-text-on-primary);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: rgba(20, 15, 33, 0.28);
+}
+
+.story-card__delete-btn:hover {
+  background: rgba(229, 72, 77, 0.6);
+}
+
+.story-card__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-card__play-btn {
+  position: relative;
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-primary);
+  backdrop-filter: blur(2px);
+}
+
+.story-card:hover .story-card__play-btn {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.story-card__player {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+}
+
+.story-card__player-close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-on-primary);
+  background: rgba(20, 15, 33, 0.5);
+}
+
+.story-card__player-close:hover {
+  background: rgba(20, 15, 33, 0.7);
+}
+
+.story-card__body {
+  padding: var(--space-md);
+  height: 96px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.story-card__title {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-sm);
+  color: var(--color-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.story-card__source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-accent-dark);
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+}
+
+.story-card__source:hover {
+  text-decoration: underline;
+}
+
+.story-card__source span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* My Stories only (Recommended/Bookmarked never pass onShare). */
+.story-card__share {
+  padding: 0 var(--space-md) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.story-card__share-toggle {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.story-card__share-toggle:hover {
+  background: var(--color-accent-light);
+}
+
+.story-card__share-row {
+  display: flex;
+  gap: var(--space-sm);
+  animation: filter-row-in var(--transition-base);
+}
+
+.story-card__share-btn {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand, var(--color-primary));
+  color: #fff;
+}
+
+.story-card__share-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.story-card__share-status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.story-card__share-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-badge);
+  margin: 0;
+}

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useAppState } from "@/app/providers/AppStateProvider";
+import LearningCard from "@/components/LearningCard/LearningCard";
+import { useAppState } from "../../../app/providers/AppStateProvider";
 import {
   completeRecommendation,
   getRecommendationsByStatus,
-} from "@/services/learningService";
+} from "../../../services/learningService";
 
-export default function InProgressPage() {
+export default function InProgress() {
   const { state } = useAppState();
   const menteeId = state.currentUser.id;
   const [items, setItems] = useState(null);
@@ -48,27 +49,32 @@ export default function InProgressPage() {
       <div className="learning-card-list">
         {!loading &&
           items.map((item) => (
-            <div key={item.id} className="card learning-card">
-              <p className="learning-card__title">{item.title}</p>
-              <p className="learning-card__category">{item.skillCategory}</p>
-              <p className="learning-card__by">By {item.mentorName}</p>
-              {item.status === "completed" ? (
-                <span className="learning-card__completed-badge">
-                  Completed
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  disabled={completingId === item.id}
-                  onClick={() => handleComplete(item)}
-                >
-                  {completingId === item.id
-                    ? "Marking complete…"
-                    : "Mark Complete"}
-                </button>
-              )}
-            </div>
+            <LearningCard
+              key={item.id}
+              item={item}
+              statusLabel={
+                item.status === "completed" ? "Completed" : "In Progress"
+              }
+              statusTone={item.status === "completed" ? "complete" : undefined}
+              footer={
+                item.status === "completed" ? (
+                  <span className="learning-card__completed-badge">
+                    Completed
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    disabled={completingId === item.id}
+                    onClick={() => handleComplete(item)}
+                  >
+                    {completingId === item.id
+                      ? "Marking complete…"
+                      : "Mark Complete"}
+                  </button>
+                )
+              }
+            />
           ))}
       </div>
     </div>

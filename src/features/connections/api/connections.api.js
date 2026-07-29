@@ -65,6 +65,32 @@ function withDemoPhoto(mapped) {
   return demoPhoto ? { ...mapped, image: demoPhoto } : mapped;
 }
 
+// ============================================================================
+// DEMO SCOPING (TEMPORARY) — NOT a permanent architectural decision.
+// Display-only tagline shown under each connection's name in the card/list
+// view (ConnectionCard), separate from `tier` — `tier` stays the real
+// Elevate designation (still used as-is anywhere that needs the real field,
+// e.g. mentorCategory.js's categoryForTier fallback), while `tagline` is
+// purely cosmetic curated copy for these 6 demo accounts. Thandi (1490) is
+// deliberately NOT listed here — her card already reads "Aspiring ELP
+// Practitioner" via her real Elevate designation today, and that's meant to
+// stay exactly as-is. Delete DEMO_TAGLINE_BY_USER_ID and withDemoTagline()
+// once demo scoping as a whole is retired.
+// ============================================================================
+const DEMO_TAGLINE_BY_USER_ID = {
+  1509: "Gold Tier ELP Practitioner", // Maria
+  1689: "Primary School Teacher", // Jo
+  1690: "Gold Tier ELP Practitioner", // Marizanne
+  1691: "Child Care Specialist", // Lindiwe
+  1692: "Paediatrician", // Karabo
+};
+
+function withDemoTagline(mapped) {
+  if (!mapped) return mapped;
+  const tagline = DEMO_TAGLINE_BY_USER_ID[String(mapped.id)];
+  return tagline ? { ...mapped, tagline } : mapped;
+}
+
 function designationLabel(designation) {
   return designation?.[0]?.label;
 }
@@ -102,26 +128,30 @@ function mapProfileFields(person) {
 }
 
 function mapMentorSummary(mentor) {
-  return withDemoPhoto({
-    id: String(mentor.id),
-    name: mentor.name,
-    tier:
-      designationLabel(mentor.designation) || mentor.organization?.name || "",
-    ...mapProfileFields(mentor),
-  });
+  return withDemoTagline(
+    withDemoPhoto({
+      id: String(mentor.id),
+      name: mentor.name,
+      tier:
+        designationLabel(mentor.designation) || mentor.organization?.name || "",
+      ...mapProfileFields(mentor),
+    }),
+  );
 }
 
 function mapConnectionRecord(record) {
   if (!record || Array.isArray(record) || !record.user_details) return null;
   const details = record.user_details;
-  return withDemoPhoto({
-    id: String(details.user_id ?? record.friend_id ?? record.user_id),
-    name: details.name,
-    tier: designationLabel(details.designation) || "",
-    connectedOn: record.created_at,
-    connectionStatus: record.status,
-    ...mapProfileFields(details),
-  });
+  return withDemoTagline(
+    withDemoPhoto({
+      id: String(details.user_id ?? record.friend_id ?? record.user_id),
+      name: details.name,
+      tier: designationLabel(details.designation) || "",
+      connectedOn: record.created_at,
+      connectionStatus: record.status,
+      ...mapProfileFields(details),
+    }),
+  );
 }
 
 /**
@@ -134,20 +164,22 @@ function mapConnectionRecord(record) {
  */
 function mapAcceptedConnection(record) {
   if (!record) return null;
-  return withDemoPhoto({
-    id: String(record.user_id),
-    name: record.name,
-    tier: designationLabel(record.designation) || "",
-    about: record.user_meta?.about || "",
-    experience: record.experience || "",
-    designations: labels(record.designation),
-    areasOfExpertise: labels(record.area_of_expertise),
-    educationQualification: record.education_qualification || "",
-    image: record.image || "",
-    location: locationLabel(record),
-    communicationsUserId: record.user_meta?.communications_user_id || "",
-    roomId: record.connection_meta?.room_id || "",
-  });
+  return withDemoTagline(
+    withDemoPhoto({
+      id: String(record.user_id),
+      name: record.name,
+      tier: designationLabel(record.designation) || "",
+      about: record.user_meta?.about || "",
+      experience: record.experience || "",
+      designations: labels(record.designation),
+      areasOfExpertise: labels(record.area_of_expertise),
+      educationQualification: record.education_qualification || "",
+      image: record.image || "",
+      location: locationLabel(record),
+      communicationsUserId: record.user_meta?.communications_user_id || "",
+      roomId: record.connection_meta?.room_id || "",
+    }),
+  );
 }
 
 function toBase64(value) {

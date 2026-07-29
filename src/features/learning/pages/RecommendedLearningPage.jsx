@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppState } from "@/app/providers/AppStateProvider";
+import LearningCard from "@/components/LearningCard/LearningCard";
+import { useAppState } from "../../../app/providers/AppStateProvider";
 import {
   acceptRecommendation,
   getRecommendationsByStatus,
-} from "@/services/learningService";
+} from "../../../services/learningService";
 
 /** Real recommendations for the current user (Supabase — see learningService.js). */
 function useRecommendations(menteeId, statuses) {
@@ -32,7 +33,7 @@ function useRecommendations(menteeId, statuses) {
   return { items, error, reload: () => setReloadToken((t) => t + 1) };
 }
 
-export default function RecommendedLearningPage() {
+export default function Recommended() {
   const { state } = useAppState();
   const menteeId = state.currentUser.id;
   const navigate = useNavigate();
@@ -60,24 +61,26 @@ export default function RecommendedLearningPage() {
       {!loading && pending.items.length > 0 && (
         <div className="learning-pending">
           <p className="learning-pending__title">Pending</p>
-          {pending.items.map((item) => (
-            <div key={item.id} className="card learning-pending__item">
-              <div className="learning-pending__info">
-                <p className="learning-pending__item-title">{item.title}</p>
-                <p className="learning-pending__item-by">
-                  By {item.mentorName}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn-secondary"
-                disabled={acceptingId === item.id}
-                onClick={() => handleAccept(item)}
-              >
-                {acceptingId === item.id ? "Accepting…" : "Accept"}
-              </button>
-            </div>
-          ))}
+          <div className="learning-card-list">
+            {pending.items.map((item) => (
+              <LearningCard
+                key={item.id}
+                item={item}
+                pending
+                statusLabel="Pending"
+                footer={
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    disabled={acceptingId === item.id}
+                    onClick={() => handleAccept(item)}
+                  >
+                    {acceptingId === item.id ? "Accepting…" : "Accept"}
+                  </button>
+                }
+              />
+            ))}
+          </div>
         </div>
       )}
 
@@ -85,27 +88,25 @@ export default function RecommendedLearningPage() {
       {!loading && accepted.error && (
         <p className="page-status">{accepted.error}</p>
       )}
-      {!loading && !accepted.error && accepted.items.length === 0 && (
-        <p className="page-status">
-          No recommended learning yet — check back soon.
-        </p>
-      )}
+      {!loading &&
+        !accepted.error &&
+        accepted.items.length === 0 &&
+        pending.items.length === 0 && (
+          <p className="page-status">
+            No recommended learning yet — check back soon.
+          </p>
+        )}
 
       <div className="learning-card-list">
         {!loading &&
           accepted.items.map((item) => (
-            <button
+            <LearningCard
               key={item.id}
-              type="button"
-              className="card learning-card"
+              item={item}
               onClick={() =>
                 navigate(`/my-learning/item/${item.id}`, { state: { item } })
               }
-            >
-              <p className="learning-card__title">{item.title}</p>
-              <p className="learning-card__category">{item.skillCategory}</p>
-              <p className="learning-card__by">By {item.mentorName}</p>
-            </button>
+            />
           ))}
       </div>
     </div>

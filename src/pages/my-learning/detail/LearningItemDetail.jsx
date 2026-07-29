@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeftIcon } from "@/assets/icons";
-import { useAppState } from "@/app/providers/AppStateProvider";
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  PlayIcon,
+  VideoIcon,
+  YouTubeIcon,
+} from "../../../assets/icons";
+import { useAppState } from "../../../app/providers/AppStateProvider";
 import {
   getRecommendationsByStatus,
   startRecommendation,
-} from "@/services/learningService";
-import "@/features/learning/pages/MyLearningPage.css";
-import "@/features/profile/pages/ProfilePage.css";
+} from "../../../services/learningService";
+import {
+  getYouTubeThumbnailUrl,
+  getYouTubeVideoId,
+  thumbnailPlaceholderGradient,
+} from "../../../utils/formatters";
+import "../../../features/learning/pages/MyLearningPage.css";
+import "../../../features/profile/pages/ProfilePage.css";
 
 /**
  * Accepted learning item detail — top-level route (same pattern as
@@ -72,40 +83,103 @@ export default function LearningItemDetail() {
         <p className="page-status">This item isn't available right now.</p>
       )}
 
-      {item && (
-        <div className="card learning-detail">
-          <p className="learning-detail__title">{item.title}</p>
-          <p className="learning-detail__by">By {item.mentorName}</p>
+      {item &&
+        (() => {
+          const youtubeId = getYouTubeVideoId(item.resourceLink);
+          const posterUrl = getYouTubeThumbnailUrl(item.resourceLink);
+          const isCompleted = item.status === "completed";
+          const isInProgress = item.status === "in_progress";
+          return (
+            <div className="card learning-detail">
+              <div
+                className={`learning-card__thumb learning-detail__thumb${isCompleted ? " learning-card--completed" : ""}`}
+                style={
+                  !posterUrl
+                    ? { background: thumbnailPlaceholderGradient(item.title) }
+                    : undefined
+                }
+              >
+                {posterUrl && (
+                  <img
+                    className="learning-card__thumb-img"
+                    src={posterUrl}
+                    alt=""
+                  />
+                )}
+                <a
+                  className="learning-card__play-badge learning-detail__play-badge"
+                  href={item.resourceLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Watch ${item.title}`}
+                >
+                  <PlayIcon />
+                </a>
+                {item.materialType && (
+                  <span className="learning-card__type-badge">
+                    {youtubeId ? <YouTubeIcon /> : <VideoIcon />}
+                    {item.materialType}
+                  </span>
+                )}
+                {isCompleted && (
+                  <span className="learning-card__status-badge learning-card__status-badge--complete">
+                    <CheckIcon />
+                    Completed
+                  </span>
+                )}
+              </div>
 
-          <div className="learning-detail__field">
-            <span className="profile-field__label">Skill Category</span>
-            <p className="profile-field__value">{item.skillCategory}</p>
-          </div>
-          <div className="learning-detail__field">
-            <span className="profile-field__label">Material Type</span>
-            <p className="profile-field__value">{item.materialType}</p>
-          </div>
-          <div className="learning-detail__field">
-            <span className="profile-field__label">Resource Link</span>
-            <p className="profile-field__value">
-              <a href={item.resourceLink} target="_blank" rel="noreferrer">
-                {item.resourceLink}
-              </a>
-            </p>
-          </div>
+              <div className="learning-detail__body">
+                {item.skillCategory && (
+                  <span className="learning-card__category">
+                    {item.skillCategory}
+                  </span>
+                )}
+                <p className="learning-detail__title">{item.title}</p>
+                <p className="learning-detail__by">By {item.mentorName}</p>
 
-          {item.status === "accepted" && (
-            <button
-              type="button"
-              className="btn-primary"
-              disabled={starting}
-              onClick={handleStartLearning}
-            >
-              {starting ? "Starting…" : "Start Learning"}
-            </button>
-          )}
-        </div>
-      )}
+                {isInProgress && (
+                  <div className="learning-card__progress learning-detail__progress">
+                    <div className="learning-card__progress-track">
+                      <div
+                        className="learning-card__progress-fill"
+                        style={{ width: `${item.progressPercent}%` }}
+                      />
+                    </div>
+                    <span className="learning-card__progress-label">
+                      {item.progressPercent}% complete
+                    </span>
+                  </div>
+                )}
+
+                <div className="learning-detail__field">
+                  <span className="profile-field__label">Resource Link</span>
+                  <p className="profile-field__value">
+                    <a
+                      className="learning-detail__link"
+                      href={item.resourceLink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {item.resourceLink}
+                    </a>
+                  </p>
+                </div>
+
+                {item.status === "accepted" && (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    disabled={starting}
+                    onClick={handleStartLearning}
+                  >
+                    {starting ? "Starting…" : "Start Learning"}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }

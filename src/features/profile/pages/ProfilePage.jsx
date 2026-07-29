@@ -1,38 +1,52 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from "@/assets/icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  GraduationCapIcon,
+  InfoIcon,
+  LocationPinIcon,
+  PersonCheckIcon,
+} from "../../../assets/icons";
 import ConnectionCard from "@/components/common/ConnectionCard/ConnectionCard";
-import RecommendLearningPanel from "@/components/RecommendLearningPanel/RecommendLearningPanel";
-import { useAppState } from "@/app/providers/AppStateProvider";
+import RecommendLearningPanel from "../../../components/RecommendLearningPanel/RecommendLearningPanel";
+import { useAppState } from "../../../app/providers/AppStateProvider";
 import {
   getConnectionInfo,
   getMyConnections,
   initiateConnection,
-} from "@/features/connections/api/connections.api";
+} from "../../connections/api/connections.api";
 import "./ProfilePage.css";
 
 const DEFAULT_CONNECT_MESSAGE = "Hi, I would like to connect with you.";
 
-function CollapsibleSection({
-  title,
-  icon: Icon,
-  defaultOpen = false,
-  children,
-}) {
+// ============================================================================
+// DEMO SCOPING (TEMPORARY) — NOT a permanent architectural decision.
+// Thandi (same id SearchMapView.jsx and connectionsService.js already key
+// off of) is positioned as the beginner in this demo — she only ever
+// receives learning recommendations, never sends them, regardless of whose
+// profile she's viewing. Gated on who's LOGGED IN, not whose profile is
+// open, so the other 5 demo accounts keep seeing "Recommend Learning" on
+// their own accepted connections (including on Thandi's profile) exactly as
+// before. Delete THANDI_USER_ID once demo scoping as a whole is retired.
+// ============================================================================
+const THANDI_USER_ID = "1490";
+
+function CollapsibleSection({ title, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="card profile-section">
       <button
         className="profile-section__header"
         onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
       >
         <span className="profile-section__header-title">
-          {Icon && <Icon className="profile-section__header-icon" />}
+          <InfoIcon className="profile-section__header-icon" />
           {title}
         </span>
         <ChevronRightIcon
-          className={`profile-section__chevron${open ? " profile-section__chevron--open" : ""}`}
+          className="profile-section__chevron"
+          style={{ transform: `rotate(${open ? -90 : 90}deg)` }}
         />
       </button>
       {open && <div className="profile-section__body">{children}</div>}
@@ -40,21 +54,27 @@ function CollapsibleSection({
   );
 }
 
-function ProfileField({ label, children, wide }) {
+function ProfileField({ label, icon: Icon, children }) {
   if (!children || (Array.isArray(children) && children.length === 0))
     return null;
   return (
-    <div className={`profile-field${wide ? " profile-field--wide" : ""}`}>
-      <span className="profile-field__label">{label}</span>
-
-      <p className="profile-field__value">
-        {Array.isArray(children) ? children.join(", ") : children}
-      </p>
+    <div className="profile-field">
+      {Icon && (
+        <span className="profile-field__icon">
+          <Icon />
+        </span>
+      )}
+      <div className="profile-field__text">
+        <span className="profile-field__label">{label}</span>
+        <p className="profile-field__value">
+          {Array.isArray(children) ? children.join(", ") : children}
+        </p>
+      </div>
     </div>
   );
 }
 
-export default function ProfilePage() {
+export default function Profile() {
   const { userId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -129,7 +149,6 @@ export default function ProfilePage() {
   // Same real-chat navigation as the Chat button on ConnectionCard in My
   // Connections (MyConnections.jsx) — this used to open WhatsApp, a leftover
   // from before real chat was integrated.
-
   function handleChatClick(connection) {
     navigate(`/peer-connect/chat/${connection.id}`, { state: { connection } });
   }
@@ -166,8 +185,13 @@ export default function ProfilePage() {
         <ChevronLeftIcon />
       </button>
 
+      {loading && <p className="page-status">Loading profile…</p>}
+      {!loading && !profile && (
+        <p className="page-status">This profile isn't available right now.</p>
+      )}
+
       {profile && (
-        <div className="profile-card-accent">
+        <>
           <ConnectionCard
             connection={profile}
             onChatClick={
@@ -181,42 +205,44 @@ export default function ProfilePage() {
             avatarColor={isOwnProfile ? "var(--color-primary)" : undefined}
           />
 
-          {/* Mentor -> mentee only: hidden on your own profile and on anyone not yet an accepted connection. */}
-          {!isOwnProfile && isConnected && (
-            <RecommendLearningPanel
-              mentor={state.currentUser}
-              mentee={profile}
-            />
-          )}
-        </div>
-      )}
-
-      {loading && <p className="page-status">Loading profile…</p>}
-      {!loading && !profile && (
-        <p className="page-status">This profile isn't available right now.</p>
-      )}
-
-      {profile && (
-        <CollapsibleSection title="Peer Information" defaultOpen>
-          <ProfileField label="About" wide>
-            {profile.about}
-          </ProfileField>
-          <ProfileField label="Location">{profile.location}</ProfileField>
-          <ProfileField label="Area of Expertise">
-            {profile.areasOfExpertise}
-          </ProfileField>
-          <ProfileField label="Education Qualification">
-            {profile.educationQualification}
-          </ProfileField>
-          {!profile.about &&
-            !profile.location &&
-            !profile.areasOfExpertise?.length &&
-            !profile.educationQualification && (
-              <p className="page-status">
-                No further profile details shared yet.
-              </p>
+          {/* Mentor -> mentee only: hidden on your own profile, on anyone not yet
+              an accepted connection, and entirely for Thandi (the demo's
+              beginner persona), regardless of whose profile she's viewing. */}
+          {!isOwnProfile &&
+            isConnected &&
+            String(state.currentUser.id) !== THANDI_USER_ID && (
+              <RecommendLearningPanel
+                mentor={state.currentUser}
+                mentee={profile}
+              />
             )}
-        </CollapsibleSection>
+
+          <CollapsibleSection title="Peer Information" defaultOpen>
+            <ProfileField label="About" icon={InfoIcon}>
+              {profile.about}
+            </ProfileField>
+            <ProfileField label="Location" icon={LocationPinIcon}>
+              {profile.location}
+            </ProfileField>
+            <ProfileField label="Area of Expertise" icon={PersonCheckIcon}>
+              {profile.areasOfExpertise}
+            </ProfileField>
+            <ProfileField
+              label="Education Qualification"
+              icon={GraduationCapIcon}
+            >
+              {profile.educationQualification}
+            </ProfileField>
+            {!profile.about &&
+              !profile.location &&
+              !profile.areasOfExpertise?.length &&
+              !profile.educationQualification && (
+                <p className="page-status">
+                  No further profile details shared yet.
+                </p>
+              )}
+          </CollapsibleSection>
+        </>
       )}
     </div>
   );

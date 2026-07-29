@@ -2,13 +2,6 @@
   padding-bottom: var(--space-lg);
 }
 
-/* A thin colored top edge on the profile card is enough of an accent —
-   the app's own header bar sits right above this page, so a second full
-   band of color here read as heavy/redundant rather than polished. */
-.profile-card-accent .card {
-  border-top: 3px solid var(--color-primary);
-}
-
 .profile-page__back {
   display: flex;
   align-items: center;
@@ -18,10 +11,17 @@
   margin: var(--space-md) var(--space-md) var(--space-sm);
   border-radius: var(--radius-pill);
   color: var(--color-primary);
+  transition:
+    background var(--transition-base),
+    transform var(--transition-fast);
 }
 
 .profile-page__back:hover {
   background: var(--color-accent-light);
+}
+
+.profile-page__back:active {
+  transform: scale(0.92);
 }
 
 .profile-section {
@@ -37,6 +37,7 @@
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-md);
   color: var(--color-primary);
+  transition: background var(--transition-base);
 }
 
 .profile-section__header:hover {
@@ -51,17 +52,19 @@
 
 .profile-section__header-icon {
   flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+  box-sizing: content-box;
 }
 
 .profile-section__chevron {
   flex-shrink: 0;
   color: var(--color-accent);
-  transform: rotate(90deg);
   transition: transform var(--transition-base);
-}
-
-.profile-section__chevron--open {
-  transform: rotate(-90deg);
 }
 
 .profile-section__body {
@@ -73,16 +76,35 @@
   padding-top: var(--space-md);
 }
 
-@media (min-width: 560px) {
-  .profile-section__body {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md) var(--space-lg);
-  }
+/* Each field reads as its own small tile — icon + label/value — rather
+   than a flat, undifferentiated stack of text, so the section scans at a
+   glance instead of requiring the label's small caps text to be read. */
+.profile-field {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
 
-  .profile-field--wide {
-    grid-column: 1 / -1;
-  }
+.profile-field__icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+.profile-field__text {
+  min-width: 0;
+  flex: 1;
 }
 
 .profile-field__label {
@@ -99,11 +121,4 @@
   color: var(--color-text);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
-}
-
-.profile-field--wide .profile-field__value {
-  font-style: italic;
-  color: var(--color-text-secondary);
-  border-left: 3px solid var(--color-accent);
-  padding-left: var(--space-md);
 }

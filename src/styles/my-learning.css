@@ -1,0 +1,123 @@
+.my-learning-page {
+  padding-bottom: var(--space-lg);
+}
+
+/* Visually distinct from the Recommended list below it — pending items
+   still need an Accept action before they're really "recommended". Cards
+   inside (see components/LearningCard) supply their own look; this is just
+   the section wrapper + heading. */
+.learning-pending {
+  margin: 0 var(--space-md) var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.learning-pending__title {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-dark);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-md);
+}
+
+/* Card grid — mirrors .connection-list/.story-list (cards.css): a plain
+   stack on mobile, a real multi-column grid from tablet width up. */
+.learning-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin: 0 var(--space-md) var(--space-md);
+}
+
+/* Nested inside .learning-pending's own padded box — no extra margin needed. */
+.learning-pending .learning-card-list {
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .learning-card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    align-items: start;
+  }
+}
+
+.learning-detail-page {
+  padding-bottom: var(--space-lg);
+}
+
+.learning-detail {
+  margin: 0 var(--space-md);
+}
+
+/* Hero-sized version of the list card's thumbnail (learning-card.css) —
+   same real YouTube poster + play badge + type/status pill treatment,
+   just bigger and with a larger, more tappable play target. */
+.learning-detail__thumb {
+  height: 200px;
+}
+
+.learning-detail__play-badge {
+  width: 56px;
+  height: 56px;
+}
+
+.learning-detail__play-badge svg {
+  width: 24px;
+  height: 24px;
+}
+
+.learning-detail__body {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.learning-detail__title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  margin-top: 2px;
+}
+
+.learning-detail__by {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.learning-detail__progress {
+  width: 100%;
+  margin-bottom: var(--space-sm);
+}
+
+.learning-detail__field {
+  width: 100%;
+  margin-bottom: var(--space-md);
+}
+
+.learning-detail__link {
+  color: var(--color-accent-dark);
+  font-weight: var(--font-weight-medium);
+  word-break: break-all;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+.learning-detail__link:hover,
+.learning-detail__link:active {
+  color: var(--color-accent);
+  text-decoration-color: currentColor;
+}
+
+.learning-detail .btn-primary {
+  margin-top: var(--space-sm);
+}

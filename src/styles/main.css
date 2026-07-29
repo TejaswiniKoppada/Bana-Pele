@@ -1,7 +1,8 @@
-@import './reset.css';
-@import './variables.css';
-@import './typography.css';
-@import './globals.css';
+@import "./reset.css";
+@import "./variables.css";
+@import "./typography.css";
+@import "./globals.css";
+@import "./my-learning.css";
 
 .app-shell {
   min-height: 100%;

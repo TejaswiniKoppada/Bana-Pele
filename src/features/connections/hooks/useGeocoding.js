@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getConnectionInfo } from "@/features/connections/api/connections.api";
+import { getConnectionInfo } from "../api/connections.api";
 import { geocodeLocation } from "@/services/geocodingService";
 
 /**
