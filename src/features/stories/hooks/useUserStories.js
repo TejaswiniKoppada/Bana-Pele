@@ -8,13 +8,34 @@ import {
   MY_STORIES_PAGE_SIZE,
 } from '../api/stories.api';
 
-/** My Stories' data: this user's posted stories (link + upload), paginated server-side and keyed by user_id — persists across logout/login like bookmarks. */
-export function useUserStories(userId) {
+// How long to wait after the user stops typing before the search actually
+// re-queries Supabase — keeps a fast typist from firing a request per keystroke.
+const SEARCH_DEBOUNCE_MS = 400;
+
+/**
+ * My Stories' data: this user's posted stories (link + upload), paginated
+ * server-side and keyed by user_id — persists across logout/login like
+ * bookmarks. Optionally filtered by a (debounced) title search, which runs
+ * server-side too, so pagination reflects the filtered result count, not
+ * just what's on the current page.
+ */
+export function useUserStories(userId, search = '') {
   const [page, setPage] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [stories, setStories] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Debounce the raw search text, and jump back to page 1 once it settles —
+  // both updates land in the same tick so the fetch effect below only fires once.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [search]);
 
   const fetchPage = useCallback(
     async (targetPage) => {
@@ -29,6 +50,7 @@ export function useUserStories(userId) {
         const { items, totalCount: count } = await getUserStories(userId, {
           page: targetPage,
           pageSize: MY_STORIES_PAGE_SIZE,
+          search: debouncedSearch,
         });
         setStories(items);
         setTotalCount(count);
@@ -41,7 +63,7 @@ export function useUserStories(userId) {
         setLoading(false);
       }
     },
-    [userId]
+    [userId, debouncedSearch]
   );
 
   useEffect(() => {

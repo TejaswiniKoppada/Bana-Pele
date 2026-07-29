@@ -17,15 +17,9 @@
   z-index: 50;
   background: rgba(32, 26, 46, 0.5);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-}
-
-@media (min-width: 480px) {
-  .storymodal {
-    align-items: center;
-    padding: var(--space-md);
-  }
+  padding: var(--space-md);
 }
 
 .storymodal__card {
@@ -34,16 +28,10 @@
   max-height: 92vh;
   overflow-y: auto;
   background: var(--color-surface);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: var(--space-md);
   animation: filter-row-in var(--transition-base);
-}
-
-@media (min-width: 480px) {
-  .storymodal__card {
-    border-radius: var(--radius-lg);
-  }
 }
 
 .storymodal__head {
@@ -96,27 +84,42 @@
   border-radius: var(--radius-lg);
 }
 
-/* Pill-shaped, filled-when-inactive variant of the shared search-view-toggle
-   component (see peer-connect.css) — scoped to the modal so Peer Connect's
-   own toggle keeps its default look. */
+/* Segmented, pill-shaped toggle between "Paste YouTube link" and "Upload
+   from device" in the create-story modal. */
 .storymodal__fields .search-view-toggle {
+  display: flex;
+  gap: var(--space-sm);
   margin: 0;
 }
 
 .storymodal__fields .search-view-toggle__btn {
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: 1.5px solid transparent;
   border-radius: var(--radius-pill);
-  border-color: transparent;
   background: var(--color-accent-light);
   color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.storymodal__fields .search-view-toggle__btn:hover {
+  background: var(--color-accent-light-hover);
 }
 
 .storymodal__fields .search-view-toggle__btn--active {
   background: var(--color-primary);
   color: var(--color-text-on-primary);
+}
+
+.storymodal__fields .search-view-toggle__btn--active:hover {
+  background: var(--color-primary);
 }
 
 /* Outlined field with its label notched into the top border (Story

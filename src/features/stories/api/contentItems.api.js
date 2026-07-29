@@ -17,13 +17,19 @@ export function mapContentItem(row) {
 
 const TIMEOUT_MS = 10000;
 
+/** Escapes ilike wildcard characters so a searched title is matched literally. */
+export function escapeIlike(value) {
+  return value.replace(/[%_\\]/g, (char) => `\\${char}`);
+}
+
 /**
  * One page of approved content_items for the Recommended tab (page is
- * 1-based). Uses Postgrest's exact count alongside the page's rows — in the
- * same request — so the caller can derive total page count without a
- * separate query.
+ * 1-based), optionally filtered by a case-insensitive title search. Uses
+ * Postgrest's exact count alongside the page's rows — in the same request —
+ * so the caller can derive total page count (of the filtered set, when
+ * searching) without a separate query.
  */
-export async function getApprovedContentItems({ page = 1, pageSize = RECOMMENDED_PAGE_SIZE } = {}) {
+export async function getApprovedContentItems({ page = 1, pageSize = RECOMMENDED_PAGE_SIZE, search = '' } = {}) {
   // A misconfigured/unreachable SUPABASE_URL can leave the underlying
   // fetch() pending indefinitely rather than rejecting quickly (behavior
   // varies by network) — in that case .then()/.catch() never fire and a
@@ -34,12 +40,19 @@ export async function getApprovedContentItems({ page = 1, pageSize = RECOMMENDED
 
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+  const trimmedSearch = search.trim();
 
   try {
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('content_items')
       .select('id, title, video_id, published_at', { count: 'exact' })
-      .eq('status', 'approved')
+      .eq('status', 'approved');
+
+    if (trimmedSearch) {
+      query = query.ilike('title', `%${escapeIlike(trimmedSearch)}%`);
+    }
+
+    const { data, error, count } = await query
       .order('published_at', { ascending: false })
       .range(from, to)
       .abortSignal(controller.signal);

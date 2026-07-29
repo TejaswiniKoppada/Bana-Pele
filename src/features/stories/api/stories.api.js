@@ -7,6 +7,7 @@
 // auth session to check against (Elevate/Mentoring handles auth
 // separately). Acceptable for this PoC; a real gap before production.
 import { supabase } from '@/lib/supabase/client.js';
+import { escapeIlike } from './contentItems.api.js';
 
 export const ALLOWED_VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 export const ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm'];
@@ -45,17 +46,19 @@ function mapUserStory(row) {
   };
 }
 
-/** One page of this user's posted stories (page is 1-based), newest first. */
-export async function getUserStories(userId, { page = 1, pageSize = MY_STORIES_PAGE_SIZE } = {}) {
+/** One page of this user's posted stories (page is 1-based), optionally filtered by a case-insensitive title search, newest first. */
+export async function getUserStories(userId, { page = 1, pageSize = MY_STORIES_PAGE_SIZE, search = '' } = {}) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+  const trimmedSearch = search.trim();
 
-  const { data, error, count } = await supabase
-    .from('user_stories')
-    .select('*', { count: 'exact' })
-    .eq('user_id', String(userId))
-    .order('created_at', { ascending: false })
-    .range(from, to);
+  let query = supabase.from('user_stories').select('*', { count: 'exact' }).eq('user_id', String(userId));
+
+  if (trimmedSearch) {
+    query = query.ilike('title', `%${escapeIlike(trimmedSearch)}%`);
+  }
+
+  const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
 
   if (error) throw error;
   return { items: (data ?? []).map(mapUserStory), totalCount: count ?? 0 };

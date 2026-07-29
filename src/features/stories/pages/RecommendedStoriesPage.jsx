@@ -8,33 +8,35 @@ import { useBookmarkedIds } from '@/features/stories/hooks/useBookmarks';
 import { useAppState } from '@/app/providers/AppStateProvider';
 
 export default function RecommendedStoriesPage() {
-  const { items, loading, error, page, totalPages, goToPage } = useRecommendedContent();
+  const [query, setQuery] = useState('');
+  const { items, loading, error, page, totalPages, goToPage } = useRecommendedContent(query);
   const { state } = useAppState();
   const { bookmarkedIds, toggleBookmark } = useBookmarkedIds(state.currentUser.id);
-  const [query, setQuery] = useState('');
-
-  // Filters within the page currently on screen — search doesn't reach across
-  // other pages, since only the current page's items are ever fetched.
-  const visibleItems = items.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()));
+  const [playingId, setPlayingId] = useState(null);
 
   return (
     <div>
-      <SearchBar value={query} onChange={setQuery} placeholder="Search" onFilterClick={() => {}} />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search" showMic={false} />
 
       {loading && <Loader label="Loading recommended stories…" />}
       {!loading && error && <p className="page-status">{error}</p>}
-      {!loading && !error && visibleItems.length === 0 && (
-        <p className="page-status">No recommended videos yet — check back soon.</p>
+      {!loading && !error && items.length === 0 && (
+        <p className="page-status">
+          {query.trim() ? 'No recommended videos match that search.' : 'No recommended videos yet — check back soon.'}
+        </p>
       )}
 
-      {!loading && !error && visibleItems.length > 0 && (
+      {!loading && !error && items.length > 0 && (
         <div className="story-list">
-          {visibleItems.map((item) => (
+          {items.map((item) => (
             <StoryCard
               key={item.id}
               story={item}
               bookmarked={bookmarkedIds.has(item.id)}
               onBookmarkToggle={() => toggleBookmark(item.id)}
+              playing={playingId === item.id}
+              onPlay={() => setPlayingId(item.id)}
+              onStop={() => setPlayingId(null)}
             />
           ))}
         </div>

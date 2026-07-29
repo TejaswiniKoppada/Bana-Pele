@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SearchBar from '@/components/reusable/SearchBar/SearchBar';
 import Loader from '@/components/reusable/Loader/Loader';
 import Pagination from '@/components/reusable/Pagination/Pagination';
@@ -367,6 +367,7 @@ function CreateStoryModal({ open, onClose, onPost }) {
 
 export default function MyStoriesPage() {
   const { state } = useAppState();
+  const [query, setQuery] = useState('');
   const {
     stories,
     loading,
@@ -378,16 +379,11 @@ export default function MyStoriesPage() {
     addUploadStory,
     shareStory,
     deleteStory,
-  } = useUserStories(state.currentUser?.id);
+  } = useUserStories(state.currentUser?.id, query);
 
-  const [query, setQuery] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-
-  const visibleStories = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return stories.filter((story) => story.title.toLowerCase().includes(q));
-  }, [stories, query]);
+  const [playingId, setPlayingId] = useState(null);
 
   // Errors thrown here bubble back to the modal, which keeps itself open and
   // shows the message rather than silently discarding the user's input.
@@ -408,11 +404,11 @@ export default function MyStoriesPage() {
     }
   }
 
-  const isEmpty = !loading && !error && visibleStories.length === 0;
+  const isEmpty = !loading && !error && stories.length === 0;
 
   return (
     <div>
-      <SearchBar value={query} onChange={setQuery} placeholder="Search" onFilterClick={() => {}} />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search" showMic={false} />
 
       <button type="button" className="btn-primary my-stories__cta" onClick={() => setCreateOpen(true)}>
         <VideoIcon />
@@ -434,15 +430,18 @@ export default function MyStoriesPage() {
         </p>
       )}
 
-      {!loading && !error && visibleStories.length > 0 && (
+      {!loading && !error && stories.length > 0 && (
         <div className="story-list">
-          {visibleStories.map((story) => (
+          {stories.map((story) => (
             <StoryCard
               key={story.id}
               story={story}
               shareable={story.storyType === 'upload'}
               onShare={() => shareStory(story.id)}
               onDelete={() => handleDelete(story)}
+              playing={playingId === story.id}
+              onPlay={() => setPlayingId(story.id)}
+              onStop={() => setPlayingId(null)}
             />
           ))}
         </div>

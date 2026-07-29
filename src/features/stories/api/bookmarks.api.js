@@ -10,7 +10,7 @@
 // anyone with the (public, unavoidably-exposed) anon key could pass an
 // arbitrary user_id and read or modify someone else's bookmarks.
 import { supabase } from '@/lib/supabase/client.js';
-import { mapContentItem } from './contentItems.api.js';
+import { escapeIlike, mapContentItem } from './contentItems.api.js';
 
 export const BOOKMARKED_PAGE_SIZE = 6;
 
@@ -20,17 +20,28 @@ export async function getBookmarkedContentItemIds(userId) {
   return new Set((data ?? []).map((row) => row.content_item_id));
 }
 
-/** One page of this user's bookmarked content_items (page is 1-based), newest bookmark first. */
-export async function getBookmarkedContentItems(userId, { page = 1, pageSize = BOOKMARKED_PAGE_SIZE } = {}) {
+/** One page of this user's bookmarked content_items (page is 1-based), optionally filtered by a case-insensitive title search, newest bookmark first. */
+export async function getBookmarkedContentItems(userId, { page = 1, pageSize = BOOKMARKED_PAGE_SIZE, search = '' } = {}) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+  const trimmedSearch = search.trim();
 
-  const { data, error, count } = await supabase
+  // `!inner` makes the join required rather than left-outer, so filtering on
+  // the embedded content_items.title actually excludes non-matching
+  // bookmarks rather than just nulling out their embedded resource.
+  let query = supabase
     .from('bookmarks')
-    .select('content_item_id, content_items(id, title, video_id, published_at)', { count: 'exact' })
-    .eq('user_id', String(userId))
-    .order('created_at', { ascending: false })
-    .range(from, to);
+    .select(
+      `content_item_id, content_items${trimmedSearch ? '!inner' : ''}(id, title, video_id, published_at)`,
+      { count: 'exact' }
+    )
+    .eq('user_id', String(userId));
+
+  if (trimmedSearch) {
+    query = query.ilike('content_items.title', `%${escapeIlike(trimmedSearch)}%`);
+  }
+
+  const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
 
   if (error) throw error;
   const items = (data ?? []).filter((row) => row.content_items).map((row) => mapContentItem(row.content_items));

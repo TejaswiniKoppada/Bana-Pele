@@ -1,13 +1,15 @@
 name: Fetch YouTube Content
 
 # Section 8, step 4: scheduled trigger for the ingestion Edge Function.
-# Runs once daily (see Section 5's quota reasoning — no need for more
-# frequent runs). Also runnable on demand from the Actions tab, which is
-# useful for the manual run required by Section 8, step 7 before this
-# schedule is relied on.
+# Runs twice daily, 12h apart, so newly-published videos surface sooner
+# without doubling the run count too aggressively against the YouTube quota
+# reasoning in Section 5. Also runnable on demand from the Actions tab,
+# which is useful for the manual run required by Section 8, step 7 before
+# this schedule is relied on.
 on:
   schedule:
     - cron: '0 6 * * *' # 6am UTC daily — adjust to your timezone as needed
+    - cron: '0 18 * * *' # 6pm UTC daily
   workflow_dispatch: {}
 
 jobs:
