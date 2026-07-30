@@ -18,7 +18,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(identifier, password);
-      window.location.href = "https://tejaswinikoppada.github.io/";
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed.");
     } finally {
