@@ -12,9 +12,10 @@ import path from "node:path";
 const ELEVATE_API_ORIGIN = "https://elevate-apis.shikshalokam.org";
 const ELEVATE_PORTAL_ORIGIN = "https://elevate-bana-pele.shikshalokam.org";
 
-// Deployments can be hosted at the origin root or under a subpath. The
-// workflow sets PAGES_BASE for GitHub Pages builds, while local dev falls
-// back to '/' so the app keeps the expected browser URL.
+// GitHub Pages project sites are served from /<repo-name>/, not / — set by
+// the deploy workflow's PAGES_BASE env var so `npm run build` picks it up
+// there; unset (defaults to '/') for local dev and any other deployment
+// target that IS served from the origin root.
 const BASE = process.env.PAGES_BASE || "/";
 
 export default defineConfig({
