@@ -8,12 +8,10 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '20'
-  # GitHub Pages project sites are served from /<repo-name>/, not /.
-  # Read by vite.config.js (via process.env.PAGES_BASE) to set Vite's
-  # `base`, the PWA manifest's start_url/scope, and the service worker's
-  # navigateFallback so they all resolve under this subpath.
-  PAGES_BASE: /Bana-Pele/
+  NODE_VERSION: "20"
+  # Deploy the site at the root of the GitHub Pages domain so the browser
+  # URL stays under the main site path after login and route navigation.
+  PAGES_BASE: /
 
 permissions:
   contents: read
