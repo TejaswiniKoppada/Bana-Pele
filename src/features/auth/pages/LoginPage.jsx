@@ -18,7 +18,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(identifier, password);
-      window.location.href = "https://tejaswinikoppada.github.io/";
+      window.location.href = "https://tejaswinikoppada.github.io/Bana-Pele/";
     } catch (err) {
       setError(err.message || "Login failed.");
     } finally {
