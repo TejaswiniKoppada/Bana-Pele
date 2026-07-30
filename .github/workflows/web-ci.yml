@@ -42,20 +42,24 @@ jobs:
       - run: npm run build
         env:
           # Vite bakes VITE_* vars in at build time, not read at runtime.
+          # Adding a secret in GitHub's UI does NOT make it available to this
+          # step automatically — it must be explicitly listed here too, or
+          # `npm run build` never sees it.
           #
-          # VITE_API_BASE_URL is deliberately NOT set here — src/config/env.js
-          # auto-derives it from VITE_SUPABASE_URL in production builds,
-          # pointing Elevate Mentoring calls at the elevate-proxy Supabase
-          # Edge Function (see supabase/functions/elevate-proxy) instead of
-          # Elevate directly, which fails with "Tenant domain not found" from
-          # a static host (Elevate requires an Origin header browsers never
-          # let JS set). Deploy that function once via
-          # `supabase functions deploy elevate-proxy`; no separate secret
-          # needed for it.
+          # VITE_API_BASE_URL points Elevate Mentoring calls at the Render
+          # proxy (see render-proxy/) instead of Elevate directly, which
+          # fails with "Tenant domain not found" from a static host (Elevate
+          # requires an Origin header browsers never let JS set). Without
+          # this secret set, src/config/env.js falls back to the
+          # elevate-proxy Supabase Edge Function instead, which Elevate's WAF
+          # blocks — so this one specifically has to be set for login to work
+          # in production.
           #
-          # These three DO need real values — add them as repo secrets:
+          # All four need real values — add them as repo secrets:
           # Settings → Secrets and variables → Actions → New repository
-          # secret (same values as your local .env.local).
+          # secret (same values as your local .env.local for the Supabase
+          # ones; VITE_API_BASE_URL is the Render proxy's URL).
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ADMIN_REVIEW_PASSWORD: ${{ secrets.VITE_ADMIN_REVIEW_PASSWORD }}
@@ -81,7 +85,7 @@ jobs:
   deploy-web:
     name: Deploy web PWA to GitHub Pages
     needs: build-web
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
