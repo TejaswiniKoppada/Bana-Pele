@@ -34,7 +34,10 @@ const KM_PER_DEGREE_LAT = 111;
 // exists for accounts that need one.
 // ============================================================================
 const THANDI_USER_ID = "1490";
-const THANDI_PHOTO_PATH = "/images/thandi.jpg";
+// import.meta.env.BASE_URL (not a hardcoded leading "/") so this resolves
+// correctly under GitHub Pages' /Bana-Pele/ subpath in production, not just
+// at the domain root the way local dev (base "/") made this look correct.
+const THANDI_PHOTO_PATH = `${import.meta.env.BASE_URL}images/thandi.jpg`;
 
 // variant -> { icon, className } — Practitioner and Expert each need both a
 // distinct icon AND color (not color alone), so they still read apart under

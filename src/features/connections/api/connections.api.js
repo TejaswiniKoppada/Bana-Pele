@@ -50,13 +50,16 @@ function applyDemoScope(people) {
 // DEMO_PHOTO_BY_USER_ID and withDemoPhoto() once real Elevate `image` values
 // exist for the accounts that need them.
 // ============================================================================
+// import.meta.env.BASE_URL (not a hardcoded leading "/") so these resolve
+// correctly under GitHub Pages' /Bana-Pele/ subpath in production, not just
+// at the domain root the way local dev (base "/") made this look correct.
 const DEMO_PHOTO_BY_USER_ID = {
-  1490: "/images/thandi.jpg", // Thandi
-  1509: "/images/maria.jpg", // Maria
-  1689: "/images/jo.jpg", // Jo
-  1690: "/images/marizanne.jpg", // Marizanne (formerly "Nomsa")
-  1691: "/images/lindiwe.jpg", // Lindiwe
-  1692: "/images/karabo.jpg", // Karabo
+  1490: `${import.meta.env.BASE_URL}images/thandi.jpg`, // Thandi
+  1509: `${import.meta.env.BASE_URL}images/maria.jpg`, // Maria
+  1689: `${import.meta.env.BASE_URL}images/jo.jpg`, // Jo
+  1690: `${import.meta.env.BASE_URL}images/marizanne.jpg`, // Marizanne (formerly "Nomsa")
+  1691: `${import.meta.env.BASE_URL}images/lindiwe.jpg`, // Lindiwe
+  1692: `${import.meta.env.BASE_URL}images/karabo.jpg`, // Karabo
 };
 
 function withDemoPhoto(mapped) {

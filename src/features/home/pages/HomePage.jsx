@@ -47,9 +47,12 @@ const MENU_ITEMS = [
 // have live yet (ELP Tier) or hasn't been given a photo for (avatar). Delete
 // an account's entry (or the whole object) once the real field/data exists —
 // nothing else needs to change.
+// import.meta.env.BASE_URL (not a hardcoded leading "/") so these resolve
+// correctly under GitHub Pages' /Bana-Pele/ subpath in production, not just
+// at the domain root the way local dev (base "/") made this look correct.
 const TEMP_DEMO_OVERRIDES = {
-  "mentorbanapele1@yopmail.com": { tier: "Gold", avatar: "/images/maria.jpg" },
-  "banad@yopmail.com": { tier: "Pre-Bronze", avatar: "/images/thandi.jpg" },
+  "mentorbanapele1@yopmail.com": { tier: "Gold", avatar: `${import.meta.env.BASE_URL}images/maria.jpg` },
+  "banad@yopmail.com": { tier: "Pre-Bronze", avatar: `${import.meta.env.BASE_URL}images/thandi.jpg` },
 };
 
 export default function Home() {
@@ -153,8 +156,8 @@ export default function Home() {
           <RegistrationGuideIcon className="progress-badge__icon" />
         </span>
         <div className="progress-badge__info">
-          <p className="progress-badge__name">NoName</p>
-          <p className="progress-badge__location">NoLocation</p>
+          <p className="progress-badge__name">Sunshine Home</p>
+          <p className="progress-badge__location">Holly County</p>
         </div>
         {tier && (
           <div className="progress-badge__tier">
