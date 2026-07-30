@@ -1,23 +1,26 @@
-import { useState } from 'react';
-import { useAppState } from '@/app/providers/AppStateProvider';
-import { RegistrationGuideIcon } from '@/assets/icons';
-import './LoginPage.css';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppState } from "@/app/providers/AppStateProvider";
+import { RegistrationGuideIcon } from "@/assets/icons";
+import "./LoginPage.css";
 
 export default function LoginPage() {
   const { login } = useAppState();
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
+    setError("");
     setSubmitting(true);
     try {
       await login(identifier, password);
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(err.message || 'Login failed.');
+      setError(err.message || "Login failed.");
     } finally {
       setSubmitting(false);
     }
@@ -33,7 +36,13 @@ export default function LoginPage() {
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="loginHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient
+              id="loginHeroGradient"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
               <stop offset="0%" stopColor="#E8C9A0" />
               <stop offset="55%" stopColor="#7FA88F" />
               <stop offset="100%" stopColor="#6B8CAE" />
@@ -73,7 +82,7 @@ export default function LoginPage() {
         </label>
         {error && <p className="login-screen__error">{error}</p>}
         <button type="submit" className="btn-primary" disabled={submitting}>
-          {submitting ? 'Logging in…' : 'Log In'}
+          {submitting ? "Logging in…" : "Log In"}
         </button>
       </form>
     </div>
