@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAppState } from "@/app/providers/AppStateProvider";
 import { RegistrationGuideIcon } from "@/assets/icons";
 import "./LoginPage.css";
 
 export default function LoginPage() {
   const { login } = useAppState();
-  const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,7 +16,6 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(identifier, password);
-      window.location.href = "https://tejaswinikoppada.github.io/Bana-Pele/";
     } catch (err) {
       setError(err.message || "Login failed.");
     } finally {
