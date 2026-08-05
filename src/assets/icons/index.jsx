@@ -485,6 +485,20 @@ export function UploadIcon(props) {
   );
 }
 
+export function CameraIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
+      <path
+        d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1-1.6A1 1 0 0 1 9.35 5h5.3a1 1 0 0 1 .85.5L16.5 7h2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-9Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="13" r="3.3" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
+  );
+}
+
 export function CheckIcon(props) {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" {...props}>

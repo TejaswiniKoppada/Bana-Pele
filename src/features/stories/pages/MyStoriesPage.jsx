@@ -3,15 +3,33 @@ import SearchBar from '@/components/reusable/SearchBar/SearchBar';
 import Loader from '@/components/reusable/Loader/Loader';
 import Pagination from '@/components/reusable/Pagination/Pagination';
 import StoryCard from '@/features/stories/components/StoryCard/StoryCard';
-import { CloseIcon, LinkIcon, UploadIcon, VideoIcon } from '@/assets/icons';
+import { CameraIcon, CloseIcon, LinkIcon, UploadIcon, VideoIcon } from '@/assets/icons';
 import { useUserStories } from '@/features/stories/hooks/useUserStories';
 import { useAppState } from '@/app/providers/AppStateProvider';
 import { ALLOWED_VIDEO_EXTENSIONS, ALLOWED_VIDEO_MIME_TYPES, MAX_UPLOAD_BYTES, validateStoryFile } from '@/features/stories/api/stories.api';
 
-const ENTRY_MODES = { LINK: 'link', UPLOAD: 'upload' };
+const ENTRY_MODES = { LINK: 'link', UPLOAD: 'upload', RECORD: 'record' };
 const FILE_INPUT_ACCEPT = [...ALLOWED_VIDEO_MIME_TYPES, ...ALLOWED_VIDEO_EXTENSIONS].join(',');
 const MAX_UPLOAD_MB = Math.round(MAX_UPLOAD_BYTES / (1024 * 1024));
 const CAPTURE_TIMEOUT_MS = 8000;
+const MAX_RECORD_SECONDS = 5 * 60; // keeps recordings well under MAX_UPLOAD_BYTES at typical bitrates
+const RECORD_MIME_CANDIDATES = [
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm',
+  'video/mp4',
+];
+
+function pickSupportedRecordMimeType() {
+  if (typeof MediaRecorder === 'undefined') return '';
+  return RECORD_MIME_CANDIDATES.find((type) => MediaRecorder.isTypeSupported?.(type)) || '';
+}
+
+function formatDuration(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
 
 /**
  * Grabs a still frame from a local video file so an uploaded story's create
@@ -89,11 +107,21 @@ function CreateStoryModal({ open, onClose, onPost }) {
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // 'idle' | 'starting' | 'live' | 'recording' | 'stopped'
+  const [recordingState, setRecordingState] = useState('idle');
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const [cameraError, setCameraError] = useState('');
+
   const fileInputRef = useRef(null);
   const titleInputRef = useRef(null);
   const previewUrlRef = useRef(null);
   const captureTokenRef = useRef(0);
   const restoreFocusRef = useRef(null);
+  const liveVideoRef = useRef(null);
+  const streamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const recordTimerRef = useRef(null);
 
   const releasePreview = useCallback(() => {
     if (previewUrlRef.current) {
@@ -102,9 +130,99 @@ function CreateStoryModal({ open, onClose, onPost }) {
     }
   }, []);
 
+  // Releases the camera/mic and tears down any in-flight recorder — called
+  // whenever the user leaves the Record tab, closes the modal, or unmounts
+  // mid-recording, so the browser's camera indicator always goes away.
+  const stopCamera = useCallback(() => {
+    if (recordTimerRef.current) {
+      clearInterval(recordTimerRef.current);
+      recordTimerRef.current = null;
+    }
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.ondataavailable = null;
+      mediaRecorderRef.current.onstop = null;
+      if (mediaRecorderRef.current.state !== 'inactive') mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
+  const startCamera = useCallback(async () => {
+    setCameraError('');
+    setRecordingState('starting');
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('Camera recording is not supported in this browser.');
+      setRecordingState('idle');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
+      if (liveVideoRef.current) {
+        liveVideoRef.current.srcObject = stream;
+        await liveVideoRef.current.play().catch(() => {});
+      }
+      setRecordingState('live');
+    } catch (err) {
+      setCameraError(
+        err?.name === 'NotAllowedError'
+          ? 'Camera access was denied. Allow camera & microphone access to record a video.'
+          : 'Could not access your camera. Try again.'
+      );
+      setRecordingState('idle');
+    }
+  }, []);
+
+  // Shared by the file picker and the recorder: validates the file, stores
+  // it, and generates a thumbnail from it. `picked` is either a chosen
+  // <input type="file"> file or a File built from a MediaRecorder blob.
+  const processPickedFile = useCallback(
+    async (picked) => {
+      const token = (captureTokenRef.current += 1);
+      releasePreview();
+      setThumbnail(null);
+      setSubmitError('');
+
+      if (!picked) {
+        setFile(null);
+        setFileError('');
+        setCapturingThumb(false);
+        return;
+      }
+
+      const validationError = validateStoryFile(picked);
+      if (validationError) {
+        setFile(null);
+        setFileError(validationError);
+        setCapturingThumb(false);
+        return;
+      }
+
+      setFile(picked);
+      setFileError('');
+      setCapturingThumb(true);
+
+      const url = URL.createObjectURL(picked);
+      previewUrlRef.current = url;
+      const thumb = await captureVideoThumbnail(url);
+
+      // A newer pick (or a reset) landed while we were decoding — drop this one.
+      if (token !== captureTokenRef.current) return;
+      setThumbnail(thumb);
+      setCapturingThumb(false);
+    },
+    [releasePreview]
+  );
+
   const reset = useCallback(() => {
     captureTokenRef.current += 1;
     releasePreview();
+    stopCamera();
     setTitle('');
     setMode(ENTRY_MODES.LINK);
     setVideoUrl('');
@@ -113,8 +231,11 @@ function CreateStoryModal({ open, onClose, onPost }) {
     setCapturingThumb(false);
     setFileError('');
     setSubmitError('');
+    setRecordingState('idle');
+    setRecordSeconds(0);
+    setCameraError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
-  }, [releasePreview]);
+  }, [releasePreview, stopCamera]);
 
   const close = useCallback(() => {
     if (submitting) return;
@@ -143,8 +264,25 @@ function CreateStoryModal({ open, onClose, onPost }) {
     };
   }, [open, close]);
 
-  // Never leak the preview object URL if the modal unmounts mid-flow.
+  // Never leak the preview object URL, or leave the camera running, if the
+  // modal unmounts mid-flow.
   useEffect(() => releasePreview, [releasePreview]);
+  useEffect(() => stopCamera, [stopCamera]);
+
+  // Entering the Record tab (or retaking) requests the camera automatically;
+  // cameraError blocks the auto-retry so a denied permission doesn't loop.
+  useEffect(() => {
+    if (mode === ENTRY_MODES.RECORD && recordingState === 'idle' && !cameraError) {
+      startCamera();
+    }
+  }, [mode, recordingState, cameraError, startCamera]);
+
+  // Auto-stop a recording that's run long enough to risk exceeding the upload size limit.
+  useEffect(() => {
+    if (recordingState === 'recording' && recordSeconds >= MAX_RECORD_SECONDS) {
+      stopRecording();
+    }
+  }, [recordSeconds, recordingState]);
 
   if (!open) return null;
 
@@ -153,6 +291,14 @@ function CreateStoryModal({ open, onClose, onPost }) {
 
   function switchMode(next) {
     if (next === mode || submitting) return;
+    if (mode === ENTRY_MODES.RECORD) {
+      stopCamera();
+      if (recordingState !== 'stopped') {
+        setRecordingState('idle');
+        setRecordSeconds(0);
+      }
+      setCameraError('');
+    }
     setMode(next);
     setFileError('');
     setSubmitError('');
@@ -160,40 +306,75 @@ function CreateStoryModal({ open, onClose, onPost }) {
 
   async function handleFile(e) {
     const picked = e.target.files?.[0] ?? null;
-    const token = (captureTokenRef.current += 1);
-
-    releasePreview();
-    setThumbnail(null);
-    setSubmitError('');
-
-    if (!picked) {
-      setFile(null);
-      setFileError('');
-      setCapturingThumb(false);
-      return;
-    }
-
-    const validationError = validateStoryFile(picked);
-    if (validationError) {
-      setFile(null);
-      setFileError(validationError);
-      setCapturingThumb(false);
+    if (picked && validateStoryFile(picked)) {
       e.target.value = '';
+    }
+    await processPickedFile(picked);
+  }
+
+  function startRecording() {
+    if (!streamRef.current || recordingState !== 'live') return;
+    const mimeType = pickSupportedRecordMimeType();
+    try {
+      const recorder = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined);
+      recordedChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data);
+      };
+      recorder.onstop = handleRecordingStop;
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setRecordSeconds(0);
+      setRecordingState('recording');
+      recordTimerRef.current = setInterval(() => setRecordSeconds((s) => s + 1), 1000);
+    } catch {
+      setCameraError('Could not start recording. Try again.');
+    }
+  }
+
+  function stopRecording() {
+    if (recordTimerRef.current) {
+      clearInterval(recordTimerRef.current);
+      recordTimerRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }
+
+  async function handleRecordingStop() {
+    const chunks = recordedChunksRef.current;
+    recordedChunksRef.current = [];
+    const recorder = mediaRecorderRef.current;
+    mediaRecorderRef.current = null;
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    const type = recorder?.mimeType || 'video/webm';
+    const blob = new Blob(chunks, { type });
+    if (blob.size === 0) {
+      setCameraError('Recording failed — try again.');
+      setRecordingState('idle');
       return;
     }
 
-    setFile(picked);
+    const extension = type.includes('mp4') ? '.mp4' : '.webm';
+    const recordedFile = new File([blob], `story-recording-${Date.now()}${extension}`, { type });
+    await processPickedFile(recordedFile);
+    setRecordingState('stopped');
+  }
+
+  function retakeRecording() {
+    releasePreview();
+    setFile(null);
+    setThumbnail(null);
     setFileError('');
-    setCapturingThumb(true);
-
-    const url = URL.createObjectURL(picked);
-    previewUrlRef.current = url;
-    const thumb = await captureVideoThumbnail(url);
-
-    // A newer pick (or a reset) landed while we were decoding — drop this one.
-    if (token !== captureTokenRef.current) return;
-    setThumbnail(thumb);
-    setCapturingThumb(false);
+    setCameraError('');
+    setRecordSeconds(0);
+    setRecordingState('idle');
   }
 
   async function submit(e) {
@@ -210,8 +391,8 @@ function CreateStoryModal({ open, onClose, onPost }) {
       setSubmitError('Paste the link to your video.');
       return;
     }
-    if (mode === ENTRY_MODES.UPLOAD && !file) {
-      setFileError('Choose a video file to upload.');
+    if (mode !== ENTRY_MODES.LINK && !file) {
+      setFileError(mode === ENTRY_MODES.RECORD ? 'Record a video first.' : 'Choose a video file to upload.');
       return;
     }
 
@@ -228,7 +409,7 @@ function CreateStoryModal({ open, onClose, onPost }) {
     } catch (err) {
       setSubmitError(
         err?.message ||
-          (mode === ENTRY_MODES.UPLOAD ? 'Upload failed. Try again.' : 'Could not post this story. Try again.')
+          (mode !== ENTRY_MODES.LINK ? 'Upload failed. Try again.' : 'Could not post this story. Try again.')
       );
     } finally {
       setSubmitting(false);
@@ -289,9 +470,18 @@ function CreateStoryModal({ open, onClose, onPost }) {
               >
                 <UploadIcon aria-hidden="true" /> Upload from device
               </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === ENTRY_MODES.RECORD}
+                className={`search-view-toggle__btn${mode === ENTRY_MODES.RECORD ? ' search-view-toggle__btn--active' : ''}`}
+                onClick={() => switchMode(ENTRY_MODES.RECORD)}
+              >
+                <CameraIcon aria-hidden="true" /> Record video
+              </button>
             </div>
 
-            {mode === ENTRY_MODES.LINK ? (
+            {mode === ENTRY_MODES.LINK && (
               <div key={ENTRY_MODES.LINK} className="field field--outlined">
                 <input
                   id="story-video-url"
@@ -306,7 +496,9 @@ function CreateStoryModal({ open, onClose, onPost }) {
                   Video link
                 </label>
               </div>
-            ) : (
+            )}
+
+            {mode === ENTRY_MODES.UPLOAD && (
               <div key={ENTRY_MODES.UPLOAD} className="uploadbox">
                 <input
                   ref={fileInputRef}
@@ -340,6 +532,69 @@ function CreateStoryModal({ open, onClose, onPost }) {
               </div>
             )}
 
+            {mode === ENTRY_MODES.RECORD && (
+              <div key={ENTRY_MODES.RECORD} className="recordbox">
+                {cameraError && (
+                  <p className="field__error" role="alert">
+                    {cameraError}
+                  </p>
+                )}
+
+                {(recordingState === 'starting' || recordingState === 'live' || recordingState === 'recording') && (
+                  <div className="recordbox__stage">
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <video ref={liveVideoRef} className="recordbox__video" muted playsInline autoPlay />
+                    {recordingState === 'recording' && (
+                      <span className="recordbox__timer" aria-live="polite">
+                        <span className="recordbox__dot" aria-hidden="true" />
+                        {formatDuration(recordSeconds)}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {recordingState === 'stopped' && file && (
+                  <div className="recordbox__stage">
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <video className="recordbox__video" src={previewUrlRef.current} controls />
+                  </div>
+                )}
+
+                {recordingState === 'starting' && <p className="uploadbox__hint">Requesting camera access…</p>}
+
+                <div className="recordbox__controls">
+                  {recordingState === 'live' && (
+                    <button type="button" className="btn-primary" onClick={startRecording}>
+                      <span className="recordbox__dot" aria-hidden="true" /> Start recording
+                    </button>
+                  )}
+                  {recordingState === 'recording' && (
+                    <button type="button" className="btn-primary" onClick={stopRecording}>
+                      Stop recording
+                    </button>
+                  )}
+                  {recordingState === 'stopped' && (
+                    <button type="button" className="btn-secondary" onClick={retakeRecording}>
+                      Retake
+                    </button>
+                  )}
+                  {recordingState === 'idle' && cameraError && (
+                    <button type="button" className="btn-secondary" onClick={startCamera}>
+                      Try again
+                    </button>
+                  )}
+                </div>
+
+                {capturingThumb && <p className="uploadbox__hint">Preparing preview…</p>}
+
+                {fileError && (
+                  <p className="field__error" role="alert">
+                    {fileError}
+                  </p>
+                )}
+              </div>
+            )}
+
             {submitError && (
               <p className="field__error" role="alert">
                 {submitError}
@@ -352,7 +607,7 @@ function CreateStoryModal({ open, onClose, onPost }) {
               Cancel
             </button>
             <button type="submit" className="btn-primary" disabled={!canPost || submitting || capturingThumb}>
-              {submitting ? (mode === ENTRY_MODES.UPLOAD ? 'Uploading…' : 'Posting…') : 'Post story'}
+              {submitting ? (mode !== ENTRY_MODES.LINK ? 'Uploading…' : 'Posting…') : 'Post story'}
             </button>
           </div>
         </form>

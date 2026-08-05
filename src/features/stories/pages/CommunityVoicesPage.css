@@ -88,13 +88,15 @@
    from device" in the create-story modal. */
 .storymodal__fields .search-view-toggle {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-sm);
   margin: 0;
 }
 
 .storymodal__fields .search-view-toggle__btn {
   display: flex;
-  flex: 1;
+  flex: 1 1 30%;
+  min-width: 110px;
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
@@ -229,5 +231,67 @@
   object-fit: cover;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
+}
+
+/* Camera-recording tab (Record video) in the create-story modal. */
+.recordbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.recordbox__stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+}
+
+.recordbox__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recordbox__timer {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.recordbox__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5484d;
+  flex-shrink: 0;
+}
+
+.recordbox__controls {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.recordbox__controls .btn-primary,
+.recordbox__controls .btn-secondary {
+  width: auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  border-radius: var(--radius-lg);
 }
 
