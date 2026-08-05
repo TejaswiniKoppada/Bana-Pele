@@ -63,6 +63,13 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ADMIN_REVIEW_PASSWORD: ${{ secrets.VITE_ADMIN_REVIEW_PASSWORD }}
+          # Powers the Registration Guide's AI journey feature (see
+          # src/services/journeyService.js) -- points at demo-bap-server.js
+          # from the separate skillpath-backend repo. Same gotcha as the
+          # other VITE_* vars above: must be listed here explicitly, or
+          # this build never sees the secret even once it's added in
+          # GitHub's UI.
+          VITE_DEMO_BAP_BASE_URL: ${{ secrets.VITE_DEMO_BAP_BASE_URL }}
 
       # GitHub Pages has no server-side rewrite for client-side routes — a
       # direct visit or refresh on e.g. /Bana-Pele/peer-connect would 404
