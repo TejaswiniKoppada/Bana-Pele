@@ -279,6 +279,28 @@
   flex-shrink: 0;
 }
 
+.recordbox__flip-btn {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.recordbox__flip-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.recordbox__flip-btn:disabled {
+  opacity: 0.6;
+}
+
 .recordbox__controls {
   display: flex;
   gap: var(--space-sm);
