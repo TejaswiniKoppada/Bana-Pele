@@ -38,7 +38,7 @@ export async function fetchJourneyStatus() {
 }
 
 /** Polls fetchJourneyStatus until a journey appears, or timeoutMs elapses. */
-export function pollForJourney({ intervalMs = 3000, timeoutMs = 60000 } = {}) {
+export function pollForJourney({ intervalMs = 3000, timeoutMs = 90000 } = {}) {
   return new Promise((resolve, reject) => {
     const start = Date.now();
     const tick = async () => {
