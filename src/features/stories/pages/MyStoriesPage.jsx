@@ -3,7 +3,7 @@ import SearchBar from '@/components/reusable/SearchBar/SearchBar';
 import Loader from '@/components/reusable/Loader/Loader';
 import Pagination from '@/components/reusable/Pagination/Pagination';
 import StoryCard from '@/features/stories/components/StoryCard/StoryCard';
-import { CameraIcon, CloseIcon, LinkIcon, UploadIcon, VideoIcon } from '@/assets/icons';
+import { CameraIcon, CameraSwitchIcon, CloseIcon, LinkIcon, UploadIcon, VideoIcon } from '@/assets/icons';
 import { useUserStories } from '@/features/stories/hooks/useUserStories';
 import { useAppState } from '@/app/providers/AppStateProvider';
 import { ALLOWED_VIDEO_EXTENSIONS, ALLOWED_VIDEO_MIME_TYPES, MAX_UPLOAD_BYTES, validateStoryFile } from '@/features/stories/api/stories.api';
@@ -111,6 +111,8 @@ function CreateStoryModal({ open, onClose, onPost }) {
   const [recordingState, setRecordingState] = useState('idle');
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [cameraError, setCameraError] = useState('');
+  const [facingMode, setFacingMode] = useState('user'); // 'user' (front) | 'environment' (back)
+  const [switchingCamera, setSwitchingCamera] = useState(false);
 
   const fileInputRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -161,7 +163,10 @@ function CreateStoryModal({ open, onClose, onPost }) {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facingMode } },
+        audio: true,
+      });
       streamRef.current = stream;
       if (liveVideoRef.current) {
         liveVideoRef.current.srcObject = stream;
@@ -176,7 +181,35 @@ function CreateStoryModal({ open, onClose, onPost }) {
       );
       setRecordingState('idle');
     }
-  }, []);
+  }, [facingMode]);
+
+  // Swaps the active camera (front/back) while previewing, without
+  // interrupting an in-progress recording — only offered while 'live'.
+  const switchCamera = useCallback(async () => {
+    if (recordingState !== 'live' || switchingCamera) return;
+    const nextFacing = facingMode === 'user' ? 'environment' : 'user';
+    setSwitchingCamera(true);
+    setCameraError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: nextFacing } },
+        audio: true,
+      });
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      streamRef.current = stream;
+      if (liveVideoRef.current) {
+        liveVideoRef.current.srcObject = stream;
+        await liveVideoRef.current.play().catch(() => {});
+      }
+      setFacingMode(nextFacing);
+    } catch {
+      setCameraError('Could not switch camera — your device may only have one.');
+    } finally {
+      setSwitchingCamera(false);
+    }
+  }, [recordingState, switchingCamera, facingMode]);
 
   // Shared by the file picker and the recorder: validates the file, stores
   // it, and generates a thumbnail from it. `picked` is either a chosen
@@ -234,6 +267,7 @@ function CreateStoryModal({ open, onClose, onPost }) {
     setRecordingState('idle');
     setRecordSeconds(0);
     setCameraError('');
+    setFacingMode('user');
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, [releasePreview, stopCamera]);
 
@@ -289,19 +323,27 @@ function CreateStoryModal({ open, onClose, onPost }) {
   const canPost =
     Boolean(title.trim()) && (mode === ENTRY_MODES.LINK ? Boolean(videoUrl.trim()) : Boolean(file));
 
+  // Each tab starts fresh — carrying a file/link/recording over from
+  // whichever tab was active before was confusing (e.g. Record showing the
+  // video picked in Upload), so switching tabs clears the other tabs' input.
   function switchMode(next) {
     if (next === mode || submitting) return;
     if (mode === ENTRY_MODES.RECORD) {
       stopCamera();
-      if (recordingState !== 'stopped') {
-        setRecordingState('idle');
-        setRecordSeconds(0);
-      }
-      setCameraError('');
     }
-    setMode(next);
+    releasePreview();
+    captureTokenRef.current += 1;
+    setVideoUrl('');
+    setFile(null);
+    setThumbnail(null);
+    setCapturingThumb(false);
     setFileError('');
     setSubmitError('');
+    setRecordingState('idle');
+    setRecordSeconds(0);
+    setCameraError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setMode(next);
   }
 
   async function handleFile(e) {
@@ -549,6 +591,18 @@ function CreateStoryModal({ open, onClose, onPost }) {
                         <span className="recordbox__dot" aria-hidden="true" />
                         {formatDuration(recordSeconds)}
                       </span>
+                    )}
+                    {recordingState === 'live' && (
+                      <button
+                        type="button"
+                        className="recordbox__flip-btn"
+                        onClick={switchCamera}
+                        disabled={switchingCamera}
+                        aria-label="Switch between front and back camera"
+                        title="Switch camera"
+                      >
+                        <CameraSwitchIcon aria-hidden="true" />
+                      </button>
                     )}
                   </div>
                 )}

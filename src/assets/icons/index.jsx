@@ -499,6 +499,23 @@ export function CameraIcon(props) {
   );
 }
 
+export function CameraSwitchIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" {...props}>
+      <path
+        d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1-1.6A1 1 0 0 1 9.35 5h5.3a1 1 0 0 1 .85.5L16.5 7h2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-9Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M9 12.3a3.2 3.2 0 0 1 5.2-1.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M15 13.7a3.2 3.2 0 0 1-5.2 1.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M14.4 9.6 15 11l1.5-.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.6 16.4 9 15l-1.5.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function CheckIcon(props) {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" {...props}>
