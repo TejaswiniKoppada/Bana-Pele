@@ -17,9 +17,9 @@ import "./HomePage.css";
 const MENU_ITEMS = [
   {
     label: "My Registration Guide",
-    to: null,
+    to: "/registration-guide",
     Icon: RegistrationGuideIcon,
-    enabled: false,
+    enabled: true,
   },
   {
     label: "My Learning",

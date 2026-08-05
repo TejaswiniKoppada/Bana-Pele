@@ -1,0 +1,227 @@
+.registration-guide-page {
+  padding-bottom: var(--space-lg);
+}
+
+.registration-guide-page__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: var(--space-md) var(--space-md) var(--space-sm);
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+  transition:
+    background var(--transition-base),
+    transform var(--transition-fast);
+}
+
+.registration-guide-page__back:hover {
+  background: var(--color-accent-light);
+}
+
+.registration-guide-page__back:active {
+  transform: scale(0.92);
+}
+
+.registration-guide-page__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md) var(--space-md);
+  color: var(--color-primary);
+}
+
+.registration-guide-page__header h1 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.registration-guide-page__form,
+.registration-guide-page__prompt,
+.registration-guide-page__loading,
+.registration-guide-page__error {
+  margin: 0 var(--space-md) var(--space-md);
+  padding: var(--space-lg) var(--space-md);
+}
+
+.registration-guide-page__form h2 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-md);
+}
+
+.registration-guide-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.registration-guide-page__field > span {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.registration-guide-page__field input[type='text'],
+.registration-guide-page__field input[type='number'],
+.registration-guide-page__field select,
+.registration-guide-page__field textarea {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.registration-guide-page__field textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.registration-guide-page__timeframe {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.registration-guide-page__timeframe input {
+  flex: 1;
+}
+
+.registration-guide-page__timeframe select {
+  flex: 1;
+}
+
+.registration-guide-page__tiers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.registration-guide-page__tier-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-base);
+}
+
+.registration-guide-page__tier-btn--active {
+  border-color: var(--color-primary);
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.registration-guide-page__prompt {
+  text-align: center;
+}
+
+.registration-guide-page__prompt > p {
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  margin-bottom: var(--space-md);
+}
+
+.registration-guide-page__prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.registration-guide-page__loading {
+  text-align: center;
+}
+
+.registration-guide-page__loading-icon {
+  width: 40px;
+  height: 40px;
+  color: var(--color-accent);
+  margin-bottom: var(--space-sm);
+  animation: registration-guide-spin 1.5s linear infinite;
+}
+
+@keyframes registration-guide-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.registration-guide-page__loading-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.registration-guide-page__results {
+  padding: 0 var(--space-md);
+}
+
+.registration-guide-page__summary {
+  padding: var(--space-lg) var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.registration-guide-page__summary h2 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.registration-guide-page__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  list-style: none;
+}
+
+.registration-guide-page__step {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+.registration-guide-page__step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.registration-guide-page__step h3 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+}
+
+.registration-guide-page__step p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.registration-guide-page__error {
+  text-align: center;
+}
+
+.registration-guide-page__error > p {
+  color: var(--color-badge-dark);
+  margin-bottom: var(--space-md);
+}
