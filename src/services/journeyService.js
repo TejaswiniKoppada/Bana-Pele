@@ -13,7 +13,7 @@
 // a real per-user token handshake with demo-bap before supporting
 // multiple real accounts.
 
-import { DEMO_BAP_BASE_URL } from '@/config/env.js';
+import { DEMO_BAP_BASE_URL, ELEVATE_BPP_BASE_URL } from '@/config/env.js';
 
 export async function triggerJourneyRequest({ goal, timeframe, currentTier, assessment }) {
   const res = await fetch(`${DEMO_BAP_BASE_URL}/api/trigger/journey-request`, {
@@ -22,6 +22,24 @@ export async function triggerJourneyRequest({ goal, timeframe, currentTier, asse
     body: JSON.stringify({ goal, timeframe, currentTier, assessment }),
   });
   if (!res.ok) throw new Error(`Failed to start your journey (${res.status})`);
+  return res.json();
+}
+
+/**
+ * Quick sufficiency check on the assessment text before committing to
+ * the full journey generation -- catches meaningless input (e.g.
+ * "aaaaa") and returns a real follow-up question instead of silently
+ * generating something generic. Talks directly to elevate-bpp (not
+ * demo-bap) since this is a fast, throwaway check, not a real Beckn
+ * transaction step.
+ */
+export async function validateAssessment({ goal, currentTier, assessment }) {
+  const res = await fetch(`${ELEVATE_BPP_BASE_URL}/api/elevate/validate-assessment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ goal, currentTier, assessment }),
+  });
+  if (!res.ok) return { sufficient: true, followUp: '' }; // fail open
   return res.json();
 }
 
@@ -38,7 +56,7 @@ export async function fetchJourneyStatus() {
 }
 
 /** Polls fetchJourneyStatus until a journey appears, or timeoutMs elapses. */
-export function pollForJourney({ intervalMs = 3000, timeoutMs = 60000 } = {}) {
+export function pollForJourney({ intervalMs = 3000, timeoutMs = 90000 } = {}) {
   return new Promise((resolve, reject) => {
     const start = Date.now();
     const tick = async () => {

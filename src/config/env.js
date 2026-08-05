@@ -51,6 +51,12 @@ export const CHAT_API_BASE_URL = import.meta.env.VITE_CHAT_API_BASE_URL || 'http
 // Elevate Mentoring API above -- no relation to Peer Connect.
 export const DEMO_BAP_BASE_URL = import.meta.env.VITE_DEMO_BAP_BASE_URL || 'http://localhost:3001';
 
+// elevate-bpp-server.js -- talked to directly (not through demo-bap) only
+// for the quick assessment-validation check, since that's a fast,
+// throwaway call rather than a real Beckn transaction step. Everything
+// else about journey generation goes through demo-bap as normal.
+export const ELEVATE_BPP_BASE_URL = import.meta.env.VITE_ELEVATE_BPP_BASE_URL || 'http://localhost:3004';
+
 // PoC-only access control for /admin/content-review (Section 6) — a plain
 // string comparison, bundled client-side like any other VITE_ var, so it is
 // NOT a real secret (visible to anyone who inspects the bundle). The
