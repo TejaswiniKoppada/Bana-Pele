@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeftIcon, BadgeTierIcon, HourglassIcon, RegistrationGuideIcon } from '@/assets/icons';
-import { triggerJourneyRequest, pollForJourney } from '@/services/journeyService';
+import { triggerJourneyRequest, pollForJourney, validateAssessment } from '@/services/journeyService';
 import './RegistrationGuidePage.css';
 
 const TIERS = ['Pre-bronze', 'Bronze', 'Silver', 'Gold'];
@@ -61,6 +61,8 @@ export default function RegistrationGuidePage() {
   const [assessment, setAssessment] = useState('');
   const [journey, setJourney] = useState(null);
   const [error, setError] = useState('');
+  const [assessmentHint, setAssessmentHint] = useState('');
+  const [validating, setValidating] = useState(false);
 
   function handleGoalSubmit(e) {
     e.preventDefault();
@@ -75,6 +77,19 @@ export default function RegistrationGuidePage() {
 
   async function handleAssessmentSubmit(e) {
     e.preventDefault();
+    setAssessmentHint('');
+    setValidating(true);
+    try {
+      const { sufficient, followUp } = await validateAssessment({ goal, currentTier, assessment });
+      if (!sufficient) {
+        setAssessmentHint(followUp || "Could you share a bit more real detail about your current setup? That helps build a more accurate plan.");
+        setValidating(false);
+        return;
+      }
+    } catch (err) {
+      // Fail open -- a validation hiccup shouldn't block the flow.
+    }
+    setValidating(false);
     setStep(STEP.LOADING);
     setError('');
     try {
@@ -185,8 +200,9 @@ export default function RegistrationGuidePage() {
               required
             />
           </label>
-          <button type="submit" className="btn-primary" disabled={!assessment.trim()}>
-            Evaluate &amp; Customize
+          {assessmentHint && <p className="registration-guide-page__hint">{assessmentHint}</p>}
+          <button type="submit" className="btn-primary" disabled={!assessment.trim() || validating}>
+            {validating ? 'Checking…' : 'Evaluate & Customize'}
           </button>
         </form>
       )}
