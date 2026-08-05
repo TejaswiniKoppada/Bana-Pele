@@ -11,7 +11,7 @@ import './SideNav.css';
 
 const NAV_ITEMS = [
   { label: 'Home', to: '/', Icon: HomeIcon, enabled: true },
-  { label: 'My Registration Guide', to: null, Icon: RegistrationGuideIcon, enabled: false },
+  { label: 'My Registration Guide', to: '/registration-guide', Icon: RegistrationGuideIcon, enabled: true },
   { label: 'My Learning', to: '/my-learning', Icon: LearningIcon, enabled: true },
   { label: 'Community Connect', to: '/peer-connect', Icon: PeerConnectIcon, enabled: true },
   { label: 'Community Voices', to: '/community-voices', Icon: CommunityVoicesIcon, enabled: true },

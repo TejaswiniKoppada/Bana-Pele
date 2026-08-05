@@ -13,6 +13,7 @@ import MyLearningPage from "@/features/learning/pages/MyLearningPage";
 import RecommendedLearningPage from "@/features/learning/pages/RecommendedLearningPage";
 import InProgressPage from "@/features/learning/pages/InProgressPage";
 import LearningItemDetail from "@/pages/my-learning/detail/LearningItemDetail";
+import RegistrationGuidePage from "@/features/registration-guide/pages/RegistrationGuidePage";
 
 export default function AppRouter() {
   return (
@@ -40,6 +41,7 @@ export default function AppRouter() {
         path="/my-learning/item/:itemId"
         element={<LearningItemDetail />}
       />
+      <Route path="/registration-guide" element={<RegistrationGuidePage />} />
     </Routes>
   );
 }

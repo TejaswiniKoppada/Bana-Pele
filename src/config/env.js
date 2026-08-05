@@ -43,6 +43,14 @@ export const TIMEZONE = 'Asia/Calcutta';
 // detour is needed for it.
 export const CHAT_API_BASE_URL = import.meta.env.VITE_CHAT_API_BASE_URL || 'https://elevate-chat.shikshalokam.org';
 
+// demo-bap-server.js -- the Beckn buyer-side (BAP) service from the
+// skillpath-backend repo. Powers the Registration Guide's AI-generated
+// journey feature: triggers a real Beckn transaction with elevate-bpp
+// (a separate, new Beckn provider), which generates a personalized
+// journey via Claude. Entirely separate infrastructure from the
+// Elevate Mentoring API above -- no relation to Peer Connect.
+export const DEMO_BAP_BASE_URL = import.meta.env.VITE_DEMO_BAP_BASE_URL || 'http://localhost:3001';
+
 // PoC-only access control for /admin/content-review (Section 6) — a plain
 // string comparison, bundled client-side like any other VITE_ var, so it is
 // NOT a real secret (visible to anyone who inspects the bundle). The
